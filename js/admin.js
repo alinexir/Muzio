@@ -1,5 +1,5 @@
 // پنل مدیریت: فقط با توکن Worker کار می‌کند؛ هیچ Secret ای در کد نیست.
-const API='https://YOUR-WORKER.workers.dev',app=document.getElementById('app');
+const API='https://muzio.kingdom80.workers.dev',app=document.getElementById('app');
 const H=()=>({authorization:'Bearer '+sessionStorage.getItem('t'),'content-type':'application/json'});
 const call=(p,o={})=>fetch(API+p,{...o,headers:H()}).then(r=>{if(r.status===401){sessionStorage.removeItem('t');login();throw 0}return r.json()});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
