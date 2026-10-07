@@ -1,4 +1,0 @@
-[
- {"id":1,"title":"نمونه اول","artist":"هنرمند نمونه","album":"آلبوم نمونه","cover":"images/cover1.svg","audio":"","duration":"03:45","releaseDate":"2026-01-01","category":"پاپ","downloadAllowed":true,"popular":true},
- {"id":2,"title":"نمونه دوم","artist":"هنرمند نمونه","album":"آلبوم نمونه","cover":"images/cover1.svg","audio":"","duration":"04:10","releaseDate":"2026-02-01","category":"سنتی","downloadAllowed":false,"popular":false}
-]
