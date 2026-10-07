@@ -1,3 +1,28 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>مدیریت</title><link rel="stylesheet" href="../css/style.css"><style>input{padding:8px;border-radius:8px;border:1px solid var(--s2);background:var(--s);color:var(--tx);font:inherit;width:100%}form{display:grid;gap:8px;max-width:520px}td,th{padding:6px 10px;text-align:right}table{width:100%;border-collapse:collapse}</style></head>
-<body><main id="app"></main><script type="module" src="../js/admin.js"></script></body></html>
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Muzio | موزیک مجاز و رایگان</title>
+<meta name="description" content="پخش و دانلود آهنگ‌های دارای مجوز انتشار">
+<link rel="canonical" href="https://example.com/">
+<meta property="og:title" content="Muzio"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="logo" href="#/">Muzio</a>
+  <nav><a href="#/songs/new">جدید</a><a href="#/songs/popular">محبوب</a><a href="#/artists">خواننده‌ها</a><a href="#/cats">دسته‌ها</a><a href="#/about">درباره</a></nav>
+  <input id="q" type="search" placeholder="جستجوی آهنگ، خواننده، آلبوم…" aria-label="جستجو">
+</header>
+<main id="view" tabindex="-1"></main>
+<footer><a href="#/about">درباره ما</a> · <a href="#/terms">قوانین استفاده</a></footer>
+<section id="player" class="player" hidden>
+  <button id="pToggle" class="ptoggle" aria-label="باز و بسته کردن پلیر">⌃</button>
+  <img id="pCover" alt=""><div class="meta"><b id="pTitle"></b><span id="pArtist"></span></div>
+  <div class="ctl"><button id="pNext" aria-label="بعدی">⏮</button><button id="pPlay" class="play" aria-label="پخش">▶</button><button id="pPrev" aria-label="قبلی">⏭</button></div>
+  <div class="bar"><span id="pCur">0:00</span><input id="pBar" type="range" min="0" max="100" value="0" step="0.1"><span id="pDur">0:00</span></div>
+  <input id="pVol" type="range" min="0" max="1" step="0.01" value="1" aria-label="صدا">
+</section>
+<script type="module" src="js/app.js"></script>
+</body></html>
