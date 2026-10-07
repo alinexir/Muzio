@@ -1,6 +1,6 @@
 // اپ اصلی: بارگذاری داده، مسیریابی hash، رندر صفحات، SEO
 import {Player} from './player.js';import {searchSongs,debounce} from './search.js';
-const API_BASE=''; // بعد از ساخت Worker: 'https://your-worker.workers.dev'
+const API_BASE='https://muzio.kingdom80.workers.dev'; // بعد از ساخت Worker: 'https://your-worker.workers.dev'
 const $=id=>document.getElementById(id),v=$('view'),player=new Player();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let songs=[];const lists={};
