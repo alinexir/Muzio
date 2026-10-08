@@ -19,12 +19,6 @@ main{padding:24px 5vw;max-width:1200px;margin:auto}h2{margin:32px 0 12px}
 .sk{height:210px;border-radius:var(--r);background:linear-gradient(90deg,var(--s) 25%,var(--s2) 50%,var(--s) 75%);background-size:200%;animation:sk 1.2s infinite}@keyframes sk{to{background-position:-200%}}
 .empty{text-align:center;color:var(--mu);padding:48px 0}.detail{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:28px;align-items:start}.detail img{width:100%;border-radius:var(--r)}
 footer{text-align:center;color:var(--mu);padding:32px}
-.player{position:fixed;inset:auto 0 0 0;background:var(--s);border-top:1px solid var(--s2);display:flex;align-items:center;gap:16px;padding:10px 5vw;z-index:9;transition:transform .3s}
-.player img{width:52px;height:52px;border-radius:8px;object-fit:cover}.meta{display:grid;min-width:0;width:160px}.meta b,.meta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta span{color:var(--mu);font-size:.85rem}
-.ctl{display:flex;gap:6px;align-items:center}.ctl button{font-size:1.2rem;padding:6px 10px}.play{background:var(--ac);color:#211a31;border-radius:50%;width:44px;height:44px}
-.bar{flex:1;display:flex;gap:8px;align-items:center;font-size:.8rem;color:var(--mu)}.bar input{flex:1;accent-color:var(--ac)}#pVol{width:90px;accent-color:var(--ac)}.ptoggle{display:none}
-@media(max-width:700px){#pVol,.meta{display:none}.player{flex-wrap:wrap;gap:8px}.bar{order:3;flex-basis:100%}.ptoggle{display:block;position:absolute;top:-30px;left:16px;background:var(--s);border-radius:12px 12px 0 0;padding:2px 14px}
-.player.min{transform:translateY(100%)}.detail{grid-template-columns:1fr}.hero{padding:22px}nav{width:100%;order:3}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /* ===== تم نئونی Muzio ===== */
 :root{--n1:#00f0ff;--n2:#ff2bd6;--n3:#8a5cff;--grad:linear-gradient(90deg,var(--n1),var(--n3) 50%,var(--n2))}
@@ -39,6 +33,37 @@ nav a:hover{color:var(--n1);text-shadow:0 0 10px var(--n1)}
 .chip:hover{border-color:var(--n2);box-shadow:0 0 14px rgba(255,43,214,.6);color:var(--n2)}
 h2{text-shadow:0 0 14px rgba(138,92,255,.7)}
 .btn,.play{background:var(--grad);color:#07060f;box-shadow:0 0 18px rgba(0,240,255,.5)}.btn:hover,.play:hover{box-shadow:0 0 28px rgba(255,43,214,.7)}
-.player{background:rgba(17,14,34,.88);backdrop-filter:blur(14px);border-top:1px solid transparent;border-image:var(--grad) 1;box-shadow:0 -6px 30px rgba(138,92,255,.35)}
-.player img{box-shadow:0 0 14px rgba(255,43,214,.6)}.bar input,#pVol{accent-color:var(--n1)}
 .player[hidden]{display:none}
+
+/* ===== پلیر جدید ===== */
+body{padding-bottom:150px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:32px 0 12px}.sec h2{margin:0}.more{color:var(--n1);font-size:.9rem}
+.player{position:fixed;left:10px;right:10px;bottom:10px;max-width:940px;margin:auto;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"c m k" "b b b";gap:8px 14px;align-items:center;padding:12px 18px;border-radius:24px;background:rgba(17,14,34,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(138,92,255,.5);box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 30px rgba(138,92,255,.35);z-index:9;transition:transform .3s}
+.player[hidden]{display:none}
+#pCover{grid-area:c;width:58px;height:58px;border-radius:14px;object-fit:cover;box-shadow:0 0 16px rgba(255,43,214,.55)}
+.player.playing #pCover{animation:glow 1.8s ease-in-out infinite alternate}@keyframes glow{to{box-shadow:0 0 26px rgba(0,240,255,.8)}}
+.meta{grid-area:m;display:grid;min-width:0;width:auto}.meta b{font-size:1.05rem}
+.ctl{grid-area:k;direction:ltr;display:flex;align-items:center;gap:8px}
+.ctl button{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;color:var(--tx);transition:background .2s}.ctl button:hover{background:rgba(255,255,255,.1)}
+.ctl .play{width:52px;height:52px;background:var(--grad);color:#07060f;box-shadow:0 0 18px rgba(0,240,255,.55)}.ctl .play:hover{box-shadow:0 0 26px rgba(255,43,214,.75)}
+.bar{grid-area:b;direction:ltr;display:flex;align-items:center;gap:10px;font-size:.78rem;color:var(--mu);font-variant-numeric:tabular-nums}
+#pBar,#pVol{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;cursor:pointer;background:linear-gradient(90deg,var(--n1),var(--n2)) left/var(--p,0%) 100% no-repeat,rgba(255,255,255,.15)}
+#pBar{flex:1}#pVol{width:90px;margin-left:8px}
+#pBar::-webkit-slider-thumb,#pVol::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--n1)}
+#pBar::-moz-range-thumb,#pVol::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--n1)}
+.ptoggle{display:none}
+@media(max-width:700px){.player{left:8px;right:8px;bottom:8px;padding:10px 14px;gap:6px 12px}#pCover{width:50px;height:50px}#pVol{display:none}
+.ptoggle{display:block;position:absolute;top:-28px;left:16px;background:rgba(17,14,34,.9);border-radius:12px 12px 0 0;padding:2px 14px}.player.min{transform:translateY(calc(100% + 40px))}
+.detail{grid-template-columns:1fr}.detail img{max-width:300px;margin:auto}.hero{padding:22px}nav{width:100%;order:3}}
+
+/* ===== نام دوزبانه، بنر، کاشی‌های آهنگ جدید ===== */
+.logo{display:flex;flex-direction:column;align-items:center;line-height:1.05}.logo small{font-size:.85rem;font-weight:600;letter-spacing:0}
+.banner{display:block;width:100%;height:auto;border-radius:24px;border:1px solid rgba(138,92,255,.5);box-shadow:0 0 40px rgba(138,92,255,.35)}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:700px){.tiles{grid-template-columns:repeat(4,1fr);gap:16px}}
+.tile{position:relative;display:block;aspect-ratio:1;border-radius:20px;overflow:hidden;background:var(--s2);border:1px solid rgba(138,92,255,.3);transition:transform .25s,box-shadow .25s}
+.tile img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.tile:hover{transform:translateY(-4px);border-color:var(--n1);box-shadow:0 0 24px rgba(0,240,255,.45),0 0 44px rgba(255,43,214,.2)}.tile:hover img{transform:scale(1.07)}
+.badge{position:absolute;top:10px;right:10px;padding:2px 14px;border-radius:99px;background:rgba(7,6,15,.65);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);font-size:.8rem}
+.cap{position:absolute;inset:auto 0 0 0;display:grid;gap:0;padding:30px 10px 10px;text-align:center;background:linear-gradient(transparent,rgba(7,6,15,.92) 70%)}
+.cap b{font-size:1rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cap span{color:var(--mu);font-size:.85rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
