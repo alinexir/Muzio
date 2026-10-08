@@ -13,6 +13,23 @@ const IMPORTERS={
 export default{async fetch(r,e){
   if(r.method==='OPTIONS')return new Response(null,{headers:H});
   const u=new URL(r.url),p=u.pathname.split('/').filter(Boolean);if(p[0]!=='api')return J({error:'not found'},404);
+  if(r.method==='GET'&&p[1]==='file'){ // پخش فایل‌های آپلودشده (با پشتیبانی از Range برای جلو/عقب کردن)
+    const {value:buf,metadata:m}=await e.KV.getWithMetadata('f:'+p[2],{type:'arrayBuffer',cacheTtl:3600});
+    if(!buf)return J({error:'not found'},404);const n=buf.byteLength;
+    const h={'content-type':(m&&m.type)||'application/octet-stream','accept-ranges':'bytes','cache-control':'public,max-age=86400','access-control-allow-origin':'*','x-content-type-options':'nosniff'};
+    const g=/bytes=(\d*)-(\d*)/.exec(r.headers.get('range')||'');
+    if(g){const s=g[1]?+g[1]:Math.max(0,n-+g[2]),t=g[1]&&g[2]?Math.min(+g[2],n-1):n-1;
+      if(s>=n)return new Response(null,{status:416,headers:{...h,'content-range':'bytes */'+n}});
+      return new Response(buf.slice(s,t+1),{status:206,headers:{...h,'content-range':`bytes ${s}-${t}/${n}`}})}
+    return new Response(buf,{headers:h})}
+  if(r.method==='POST'&&p[1]==='upload'){ // آپلود مستقیم آهنگ/کاور (فقط مدیر). سقف KV: ۲۵ مگابایت
+    if(!authed(r,e))return J({error:'unauthorized'},401);
+    const type=(r.headers.get('content-type')||'').toLowerCase();
+    if(!/^(audio|image)\//.test(type)||type.includes('svg'))return J({error:'only audio/image'},415);
+    const buf=await r.arrayBuffer();if(buf.byteLength>25*1024*1024-1024)return J({error:'too big'},413);
+    const ext=(u.searchParams.get('ext')||'bin').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5)||'bin';
+    const id=crypto.randomUUID().replace(/-/g,'').slice(0,16)+'.'+ext;
+    await e.KV.put('f:'+id,buf,{metadata:{type}});return J({url:u.origin+'/api/file/'+id})}
   const songs=await load(e),by=k=>[...new Set(songs.map(s=>s[k]))];
   if(r.method==='GET'&&p[1]!=='import'){
     if(p[1]==='songs'){const s=songs.find(x=>x.id==p[2]);return p[2]?(s?J(s):J({error:'not found'},404)):J(songs)}
@@ -28,5 +45,5 @@ export default{async fetch(r,e){
     for(const s of add){if(!s.title||!s.artist)continue;const i=songs.findIndex(x=>x.id==s.id||(x.title===s.title&&x.artist===s.artist));
       if(i>=0)songs[i]={...songs[i],...s};else{s.id=s.id||Math.max(0,...songs.map(x=>x.id))+1;songs.push(s);n++}}
     await e.KV.put('songs',JSON.stringify(songs));return J({added:n,total:songs.length})}
-  if(r.method==='DELETE'&&p[1]==='songs'){await e.KV.put('songs',JSON.stringify(songs.filter(s=>s.id!=p[2])));return J({ok:1})}
+  if(r.method==='DELETE'&&p[1]==='songs'){const d=songs.find(x=>x.id==p[2]);for(const k of['audio','cover']){const q=((d||{})[k]||'').match(/\/api\/file\/([\w.]+)$/);if(q)await e.KV.delete('f:'+q[1])}await e.KV.put('songs',JSON.stringify(songs.filter(s=>s.id!=p[2])));return J({ok:1})}
   return J({error:'not found'},404)}};
