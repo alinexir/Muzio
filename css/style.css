@@ -53,7 +53,7 @@ body{padding-bottom:150px}
 #pBar::-moz-range-thumb,#pVol::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--n1)}
 .ptoggle{display:none}
 @media(max-width:700px){.player{left:8px;right:8px;bottom:8px;padding:10px 14px;gap:6px 12px}#pCover{width:50px;height:50px}#pVol{display:none}
-.ptoggle{display:block;position:absolute;top:-28px;left:16px;background:rgba(17,14,34,.9);border-radius:12px 12px 0 0;padding:2px 14px}.player.min{transform:translateY(calc(100% + 40px))}
+.ptoggle{display:block;position:absolute;top:-28px;left:16px;background:rgba(17,14,34,.9);border-radius:12px 12px 0 0;padding:2px 14px}
 .detail{grid-template-columns:1fr}.detail img{max-width:300px;margin:auto}.hero{padding:22px}nav{width:100%;order:3}}
 
 /* ===== نام دوزبانه، بنر، کاشی‌های آهنگ جدید ===== */
@@ -67,3 +67,33 @@ body{padding-bottom:150px}
 .badge{position:absolute;top:10px;right:10px;padding:2px 14px;border-radius:99px;background:rgba(7,6,15,.65);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);font-size:.8rem}
 .cap{position:absolute;inset:auto 0 0 0;display:grid;gap:0;padding:30px 10px 10px;text-align:center;background:linear-gradient(transparent,rgba(7,6,15,.92) 70%)}
 .cap b{font-size:1rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cap span{color:var(--mu);font-size:.85rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+
+/* ===== حالت مینی پلیر + کاور بزرگ ===== */
+.ptoggle{display:block;position:absolute;top:-26px;left:18px;padding:2px 16px;line-height:1.2;color:var(--tx);background:rgba(17,14,34,.92);border:1px solid rgba(138,92,255,.5);border-bottom:0;border-radius:12px 12px 0 0;transition:transform .3s}
+.player.min .ptoggle{transform:rotate(180deg)}
+.player.min{grid-template-areas:"c m k";padding:8px 14px}.player.min .bar{display:none}
+.player.min #pCover{width:42px;height:42px;border-radius:10px}.player.min .ctl button{width:34px;height:34px}.player.min .ctl .play{width:42px;height:42px}
+#pCover,.meta{cursor:pointer}
+.np{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:70px 20px 190px;background:rgba(7,6,15,.9);overflow:hidden}.np[hidden]{display:none}
+.npbg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(40px) saturate(1.4);opacity:.5;transform:scale(1.25)}
+.npc{position:relative;display:grid;gap:10px;justify-items:center;text-align:center}
+.npc img{width:min(78vw,380px);aspect-ratio:1;object-fit:cover;border-radius:28px;border:1px solid rgba(255,255,255,.15);box-shadow:0 0 50px rgba(138,92,255,.6),0 0 90px rgba(0,240,255,.25)}
+.npc b{font-size:1.5rem;margin-top:8px}.npc span{color:var(--mu)}
+.npx{position:absolute;top:18px;right:18px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.12);color:var(--tx);z-index:1}
+
+/* ===== اسلایدر بنر ===== */
+.bslider{position:relative;aspect-ratio:3/2;overflow:hidden;border-radius:24px;border:1px solid rgba(138,92,255,.5);box-shadow:0 0 40px rgba(138,92,255,.35);background:#07060f}
+@media(min-width:900px){.bslider{aspect-ratio:16/9}}
+.bslider img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s}.bslider img.on{opacity:1}
+.dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:8px}
+.dots i{width:8px;height:8px;border-radius:8px;background:rgba(255,255,255,.4);cursor:pointer;transition:width .3s}.dots i.on{width:24px;background:var(--grad)}
+
+/* ===== موج، اشتراک‌گذاری، متن آهنگ، عکس خواننده ===== */
+.npc img{width:min(62vw,340px,36vh)}.np{overflow:auto}
+#viz{width:min(86vw,420px);height:64px}
+.btn.ghost{background:rgba(255,255,255,.1);color:var(--tx);box-shadow:none;border:1px solid rgba(138,92,255,.6)}.btn.ghost:hover{box-shadow:0 0 18px rgba(138,92,255,.6)}
+.toast{position:fixed;left:50%;bottom:130px;transform:translateX(-50%);background:var(--s2);color:var(--tx);padding:10px 20px;border-radius:99px;z-index:20;box-shadow:0 0 20px rgba(0,240,255,.4)}
+.lyr{white-space:pre-wrap;font:inherit;line-height:2.1;background:var(--s);border:1px solid var(--s2);border-radius:16px;padding:16px}
+.avs{display:flex;gap:16px;overflow-x:auto;padding-bottom:8px}.av{flex:0 0 92px;text-align:center}.av b{display:block;margin-top:6px;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph{display:grid;place-items:center;width:84px;height:84px;margin:auto;border-radius:50%;object-fit:cover;background:var(--grad);color:#07060f;font-size:2rem;font-weight:800;box-shadow:0 0 16px rgba(138,92,255,.6)}
+.ah{display:flex;align-items:center;gap:16px}.ah .ph{width:96px;height:96px;margin:0}.ah h1{margin:0}
