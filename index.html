@@ -7,18 +7,25 @@
 <link rel="canonical" href="https://example.com/">
 <meta property="og:title" content="Muzio · موزیو"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="icon" href="images/favicon.png"><link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="images/favicon.png"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="images/icon-192.png"><meta name="theme-color" content="#07060f"><script>try{var t=localStorage.getItem('muzio_theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script><link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="top">
+  <button id="menuBtn" class="ibtn" aria-label="منو" aria-expanded="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg></button>
   <a class="logo" href="#/"><span>Muzio</span><small>موزیو</small></a>
-  <nav><a href="#/">خانه</a><a href="#/songs/new">جدید</a><a href="#/songs/popular">محبوب</a><a href="#/artists">خواننده‌ها</a><a href="#/cats">دسته‌ها</a><a href="#/about">درباره</a></nav>
-  <input id="q" type="search" placeholder="جستجوی آهنگ، خواننده، آلبوم…" aria-label="جستجو">
+  <button id="srchBtn" class="ibtn" aria-label="جستجو"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+  <div id="sbar" class="sbar" hidden><input id="q" type="search" placeholder="جستجوی آهنگ، خواننده، آلبوم…" aria-label="جستجو"></div>
 </header>
+<div id="scrim" class="scrim" hidden></div>
+<div id="drawer" class="drawer" role="navigation" aria-label="منو">
+  <div class="dh"><b>Muzio · موزیو</b><button id="menuX" class="ibtn" aria-label="بستن">✕</button></div>
+  <a href="#/">خانه</a><a href="#/songs/new">آهنگ‌های جدید</a><a href="#/songs/popular">محبوب‌ترین‌ها</a><a href="#/fav">علاقه‌مندی‌ها</a><a href="#/artists">خواننده‌ها</a><a href="#/cats">دسته‌بندی‌ها</a><a href="#/about">درباره ما</a>
+  <button id="themeBtn" class="tbtn">☀ حالت روشن</button>
+</div>
 <main id="view" tabindex="-1"></main>
-<footer>Muzio · موزیو — <a href="#/about">درباره ما</a></footer>
+<footer><span id="fname">Muzio · موزیو</span> — <a href="#/about">درباره ما</a> <span id="flinks"></span> <button id="inst" class="chip" hidden>نصب اپ</button></footer>
 <div id="np" class="np" hidden><div id="npBg" class="npbg"></div><button id="npX" class="npx" aria-label="بستن">✕</button>
-  <div class="npc"><img id="npImg" alt=""><b id="npT"></b><span id="npA"></span><canvas id="viz"></canvas><button id="npS" class="btn ghost">اشتراک‌گذاری</button></div></div>
+  <div class="npc"><img id="npImg" alt=""><b id="npT"></b><span id="npA"></span><canvas id="viz"></canvas><div class="npa"><button id="npH" class="btn ghost" aria-label="علاقه‌مندی">♡</button><button id="npS" class="btn ghost">اشتراک‌گذاری</button></div></div></div>
 <section id="player" class="player" hidden>
   <button id="pToggle" class="ptoggle" aria-label="باز و بسته کردن پلیر">⌃</button>
   <img id="pCover" alt="">
@@ -28,7 +35,7 @@
     <button id="pPlay" class="play" aria-label="پخش"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
     <button id="pNext" aria-label="بعدی"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
   </div>
-  <div class="bar"><span id="pCur">0:00</span><input id="pBar" type="range" min="0" max="100" value="0" step="0.1" aria-label="پیشرفت"><span id="pDur">0:00</span><input id="pVol" type="range" min="0" max="1" step="0.01" value="1" aria-label="صدا"></div>
+  <div class="bar"><button id="pShuf" class="mini" aria-label="پخش تصادفی"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button><span id="pCur">0:00</span><input id="pBar" type="range" min="0" max="100" value="0" step="0.1" aria-label="پیشرفت"><span id="pDur">0:00</span><button id="pRep" class="mini" aria-label="تکرار"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button><input id="pVol" type="range" min="0" max="1" step="0.01" value="1" aria-label="صدا"></div>
 </section>
 <script type="module" src="js/app.js"></script>
 </body></html>
