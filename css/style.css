@@ -97,3 +97,69 @@ body{padding-bottom:150px}
 .avs{display:flex;gap:16px;overflow-x:auto;padding-bottom:8px}.av{flex:0 0 92px;text-align:center}.av b{display:block;margin-top:6px;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ph{display:grid;place-items:center;width:84px;height:84px;margin:auto;border-radius:50%;object-fit:cover;background:var(--grad);color:#07060f;font-size:2rem;font-weight:800;box-shadow:0 0 16px rgba(138,92,255,.6)}
 .ah{display:flex;align-items:center;gap:16px}.ah .ph{width:96px;height:96px;margin:0}.ah h1{margin:0}
+
+/* ===== شافل، تکرار، علاقه‌مندی ===== */
+.mini{position:relative;flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;color:var(--mu)}
+.mini.on{color:var(--n1);filter:drop-shadow(0 0 6px var(--n1))}
+.mini[data-m="2"]::after{content:'1';position:absolute;inset:0;display:grid;place-items:center;font-size:.55rem;font-weight:800}
+.npa{display:flex;gap:10px}#npH{font-size:1.2rem;padding:8px 18px}#npH.on{color:var(--n2);border-color:var(--n2);text-shadow:0 0 10px var(--n2)}
+/* ===== رفع باگ: منوی طولانی صفحه را عریض می‌کرد ===== */
+body{overflow-x:clip}
+nav{max-width:100%;min-width:0;overflow-x:auto;white-space:nowrap;scrollbar-width:none;gap:14px}nav::-webkit-scrollbar{display:none}nav a{flex:none}
+.meta b,.meta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== لیست آهنگ‌ها (فید) در صفحهٔ اصلی ===== */
+.feed{display:grid;gap:26px}@media(min-width:900px){.feed{grid-template-columns:repeat(2,1fr)}}
+.post{display:grid;gap:10px;align-content:start}
+.phd{display:flex;gap:12px;align-items:center}
+.pnote{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:#07060f;box-shadow:0 0 14px rgba(0,240,255,.5)}
+.phd h3{margin:0;font-size:1.05rem;line-height:1.6;color:var(--n1)}.phd small{color:var(--mu)}
+.pcard{display:grid;gap:12px;padding:14px;border-radius:22px;background:var(--s);border:1px solid rgba(138,92,255,.35);box-shadow:0 0 24px rgba(138,92,255,.15);text-align:center}
+.pcard b{font-size:1.05rem}.pcard p{margin:0;color:var(--mu)}
+.pcard img{display:block;width:100%;max-width:520px;aspect-ratio:1;object-fit:cover;border-radius:18px;margin:auto;border:1px solid rgba(255,255,255,.1)}
+.pbtn{display:flex;align-items:center;justify-content:center;padding:14px;border-radius:16px;background:var(--grad);color:#07060f;font-weight:700;box-shadow:0 0 18px rgba(0,240,255,.4)}.pbtn:hover{box-shadow:0 0 28px rgba(255,43,214,.6)}
+
+/* ===== هدر جدید: همبرگر راست، نام وسط، آیکون جستجو چپ ===== */
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0;padding:10px 4vw}
+#menuBtn{justify-self:start}#srchBtn{justify-self:end}
+.ibtn{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;color:var(--tx);background:rgba(255,255,255,.06);border:1px solid rgba(138,92,255,.4);transition:box-shadow .2s,color .2s}
+.ibtn:hover{color:var(--n1);box-shadow:0 0 14px rgba(0,240,255,.5)}
+.sbar{grid-column:1/-1;margin-top:10px}.sbar[hidden]{display:none}#q{width:100%;min-width:0}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:30}.scrim[hidden]{display:none}
+.drawer{position:fixed;top:0;bottom:0;right:0;width:min(82vw,320px);display:flex;flex-direction:column;gap:4px;padding:16px;background:rgba(14,11,30,.97);border-left:1px solid rgba(138,92,255,.5);box-shadow:-10px 0 40px rgba(138,92,255,.35);z-index:31;transform:translateX(105%);visibility:hidden;transition:transform .3s,visibility .3s}
+.drawer.open{transform:none;visibility:visible}
+.drawer .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.drawer .dh b{font-size:1.2rem;color:var(--n1)}
+.drawer a{padding:13px 14px;border-radius:12px;font-size:1.05rem}.drawer a:hover,.drawer a.on{background:rgba(138,92,255,.22);color:var(--n1)}
+
+.lic{color:var(--mu);font-size:.9rem}.lic a{color:var(--n1)}
+
+/* ===== اسلایدر آهنگ‌های جدید (۴ تا ۴ تا) ===== */
+.tslider{overflow:hidden;padding:8px 4px;margin:0 -4px}
+.ttrack{display:flex;transition:transform .5s ease;transform:translateX(calc(var(--i,0)*100%))}
+.tpage{flex:0 0 100%;min-width:0}
+.tdots{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.tdots i{width:8px;height:8px;border-radius:8px;background:rgba(255,255,255,.35);cursor:pointer;transition:width .3s}.tdots i.on{width:24px;background:var(--grad)}
+
+.abt{white-space:pre-wrap;line-height:2}
+
+/* ===== حالت روشن ===== */
+.cap{color:#fff}.cap span{color:rgba(255,255,255,.78)}.badge{color:#fff}
+.tbtn{margin-top:auto;padding:13px 14px;border-radius:12px;border:1px solid rgba(138,92,255,.5);background:rgba(138,92,255,.12);color:var(--tx);font-size:1.05rem}
+:root[data-theme=light]{color-scheme:light;--bg:#f5f2ff;--s:#ffffff;--s2:#e7e0fa;--tx:#1b1530;--mu:#645a85;--n1:#0b9bb8;--n2:#d4219f;--n3:#6a3fe0;--ac:#0b9bb8}
+[data-theme=light] body{background:radial-gradient(60vw 40vh at 85% -5%,rgba(138,92,255,.16),transparent 70%),radial-gradient(50vw 40vh at 5% 25%,rgba(0,200,230,.10),transparent 70%),radial-gradient(50vw 45vh at 70% 80%,rgba(255,43,214,.08),transparent 70%),var(--bg);background-attachment:fixed}
+[data-theme=light] .top{background:rgba(255,255,255,.85)}
+[data-theme=light] .player{background:rgba(255,255,255,.92);box-shadow:0 10px 30px rgba(80,60,140,.25)}
+[data-theme=light] .ptoggle{background:rgba(255,255,255,.95)}
+[data-theme=light] .drawer{background:rgba(255,255,255,.98);box-shadow:-10px 0 30px rgba(80,60,140,.25)}
+[data-theme=light] .np{background:rgba(245,242,255,.93)}
+[data-theme=light] .npx{background:rgba(0,0,0,.08)}
+[data-theme=light] .scrim{background:rgba(30,20,60,.4)}
+[data-theme=light] h2{text-shadow:none}
+[data-theme=light] .logo{filter:none}
+[data-theme=light] .ibtn{background:rgba(0,0,0,.04)}
+[data-theme=light] #q{background:#fff}
+[data-theme=light] .btn.ghost{background:rgba(0,0,0,.05)}
+[data-theme=light] .tdots i{background:rgba(0,0,0,.22)}[data-theme=light] .tdots i.on{background:var(--grad)}
+[data-theme=light] #pBar,[data-theme=light] #pVol{background:linear-gradient(90deg,var(--n1),var(--n2)) left/var(--p,0%) 100% no-repeat,rgba(0,0,0,.15)}
+[data-theme=light] .card,[data-theme=light] .tile,[data-theme=light] .pcard{box-shadow:0 2px 14px rgba(80,60,140,.12)}
+[data-theme=light] .toast{box-shadow:0 4px 20px rgba(80,60,140,.3)}
