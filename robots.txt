@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /Muzio/admin/
+Sitemap: https://alinexir.github.io/Muzio/sitemap.xml
