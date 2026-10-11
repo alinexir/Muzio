@@ -184,3 +184,12 @@ h2{scroll-margin-top:90px}
 .tslider .cap b{font-size:.68rem;line-height:1.4;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .tslider .cap span{font-size:.58rem}
 @media(min-width:700px){.tslider .tiles{gap:14px}.tslider .tile{border-radius:20px}.tslider .badge{top:10px;right:10px;padding:2px 14px;font-size:.8rem}.tslider .cap{padding:30px 10px 10px}.tslider .cap b{font-size:1rem}.tslider .cap span{font-size:.85rem}}
+
+/* ===== پربازدیدترین‌ها (رتبه‌بندی) ===== */
+.rks{display:grid;gap:10px}@media(min-width:900px){.rks{grid-template-columns:repeat(2,1fr)}}
+.rk{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:16px;background:var(--s);border:1px solid rgba(138,92,255,.3);transition:box-shadow .2s}
+.rk:hover{box-shadow:0 0 18px rgba(0,240,255,.35)}
+.rk .n{font-style:normal;font-weight:800;font-size:1.3rem;width:34px;text-align:center;color:var(--n1);flex:none}
+.rk:nth-child(1) .n{color:#ffd54a;text-shadow:0 0 12px #ffb300}.rk:nth-child(2) .n{color:#b8c4cc}.rk:nth-child(3) .n{color:#ff9e6b}
+.rk img{width:52px;height:52px;border-radius:12px;object-fit:cover;flex:none}
+.rk>div{flex:1;min-width:0;display:grid}.rk b,.rk span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rk span{color:var(--mu);font-size:.85rem}.rk small{color:var(--mu);white-space:nowrap}
