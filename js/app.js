@@ -19,14 +19,18 @@ const post=(s,i)=>`<article class="post"><a class="phd" href="#/song/${s.id}"><s
   <div class="pcard"><b>${esc(s.title)}</b><p>از ${esc(s.artist)}${s.album?' · آلبوم '+esc(s.album):''}</p>
   <a class="pplay" href="#/song/${s.id}" data-i="${i}" data-l="f"><img loading="lazy" src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""></a>
   <a class="pbtn pplay" href="#/song/${s.id}" data-i="${i}" data-l="f">${s.downloadAllowed?'پخش و دانلود':'پخش'} «${esc(s.title)}»</a></div></article>`;
-let fo; // لیست بی‌پایان آهنگ‌ها: با اسکرول، هر بار ۸ آهنگ بیشتر
-function feed(){if(fo)fo.disconnect();const box=document.getElementById('feed'),end=document.getElementById('fend');if(!box)return;
-  const all=lists.f||[];let n=0;
-  const more=()=>{const part=all.slice(n,n+8);box.insertAdjacentHTML('beforeend',part.map((s,i)=>post(s,n+i)).join(''));n+=part.length;
-    if(n>=all.length)fo.disconnect();else{fo.unobserve(end);fo.observe(end)}};
-  fo=new IntersectionObserver(es=>{if(es[0].isIntersecting)more()},{rootMargin:'500px'});more();fo.observe(end)}
+let fpg=0; // لیست همهٔ آهنگ‌ها: ۱۰ آهنگ در هر صفحه با دکمه‌های صفحه‌بندی
+function feed(){const box=document.getElementById('feed'),pg=document.getElementById('fend');if(!box)return;
+  const all=lists.f||[],per=10,np=Math.max(1,Math.ceil(all.length/per));
+  const nums=()=>{const s=new Set([0,np-1,fpg-1,fpg,fpg+1]),o=[];let last=-1;
+    [...s].filter(x=>x>=0&&x<np).sort((x,y)=>x-y).forEach(x=>{if(x-last>1)o.push('<span>…</span>');o.push(`<button data-pg="${x}" class="${x===fpg?'on':''}">${(x+1).toLocaleString('fa')}</button>`);last=x});return o.join('')};
+  const draw=sc=>{fpg=Math.min(Math.max(fpg,0),np-1);box.innerHTML=all.slice(fpg*per,fpg*per+per).map((s,i)=>post(s,fpg*per+i)).join('');
+    pg.innerHTML=np>1?`<div class="pager"><button data-pg="next" ${fpg>=np-1?'disabled':''}>صفحهٔ بعد ‹</button>${nums()}<button data-pg="prev" ${fpg<=0?'disabled':''}>› صفحهٔ قبل</button></div>`:'';
+    if(sc)box.previousElementSibling.scrollIntoView({behavior:'smooth'})};
+  pg.onclick=e=>{const b=e.target.closest('[data-pg]');if(!b||b.disabled)return;const v=b.dataset.pg;fpg=v==='next'?fpg+1:v==='prev'?fpg-1:+v;draw(true)};
+  draw(false)}
 const popular=()=>songs.filter(s=>s.plays||s.popular).sort((x,y)=>(y.plays||0)-(x.plays||0)||(y.popular?1:0)-(x.popular?1:0)); // محبوب = بیشترین پخش
-const byDate=()=>[...songs].sort((a,b)=>b.releaseDate.localeCompare(a.releaseDate));
+const byDate=()=>[...songs].sort((a,b)=>(!!b.addedAt-!!a.addedAt)||(b.addedAt||'').localeCompare(a.addedAt||'')||(b.releaseDate||'').localeCompare(a.releaseDate||'')); // تازه‌ترین آپلود اول
 const uniq=k=>[...new Set(songs.map(s=>s[k]))];
 const ph=(n,c='')=>info[n]&&info[n].photo?`<img class="ph" src="${esc(info[n].photo)}" alt="" loading="lazy">`:`<span class="ph">${esc([...n][0]||'?')}</span>`;
 const avatars=()=>`<div class="avs">${uniq('artist').map(a=>`<a class="av" href="#/artist/${encodeURIComponent(a)}">${ph(a)}<b>${esc(a)}</b></a>`).join('')}</div>`;
@@ -54,7 +58,7 @@ const views={
   const ld=document.getElementById('ld')||Object.assign(document.createElement('script'),{id:'ld',type:'application/ld+json'});
   ld.textContent=JSON.stringify({'@context':'https://schema.org','@type':'MusicRecording',name:s.title,byArtist:s.artist,inAlbum:s.album,datePublished:s.releaseDate,duration:s.duration});document.head.append(ld);
   return `<div class="detail"><img src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""><div><h1>${esc(s.title)}</h1><p><a href="#/artist/${encodeURIComponent(s.artist)}">${esc(s.artist)}</a> · ${esc(s.album)} · ${esc(s.duration)}${s.plays?' · '+s.plays.toLocaleString('fa')+' پخش':''}</p>
-  ${s.license?`<p class="lic">منبع: <a href="${esc(s.sourceUrl||'#')}" target="_blank" rel="noopener">${esc(s.source||'')}</a> · مجوز: <a href="${esc(s.licenseUrl||'#')}" target="_blank" rel="noopener">${esc(s.license)}</a></p>`:''}<button class="btn" data-play>پخش</button> <button class="btn ghost" data-fav>${isFav(s.id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی'}</button> <button class="btn ghost" data-share>اشتراک‌گذاری</button> ${s.downloadAllowed&&s.audio?`<a class="btn" href="${esc(s.downloadUrl||dl(s))}" download>دانلود</a>`:''}</div></div>${s.lyrics?`<h2>متن آهنگ</h2><pre class="lyr">${esc(s.lyrics)}</pre>`:''}`},
+  ${s.license?`<p class="lic">منبع: <a href="${esc(s.sourceUrl||'#')}" target="_blank" rel="noopener">${esc(s.source||'')}</a> · مجوز: <a href="${esc(s.licenseUrl||'#')}" target="_blank" rel="noopener">${esc(s.license)}</a></p>`:''}<div class="acts"><button class="btn" data-play>پخش</button> <button class="btn ghost" data-fav>${isFav(s.id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی'}</button> <button class="btn ghost" data-share>اشتراک‌گذاری</button> <a class="btn ghost" href="#/artist/${encodeURIComponent(s.artist)}">همهٔ آهنگ‌های ${esc(s.artist)} (${songs.filter(x=>x.artist===s.artist).length.toLocaleString('fa')})</a> ${s.downloadAllowed&&s.audio?`<a class="btn" href="${esc(s.downloadUrl||dl(s))}" download>دانلود</a>`:''}</div></div></div>${s.lyrics?`<h2>متن آهنگ</h2><pre class="lyr">${esc(s.lyrics)}</pre>`:''}`},
  fav(){const l=songs.filter(s=>favs().includes(s.id));lists.l=l;return `<h2>علاقه‌مندی‌های من</h2>`+(l.length?tiles(l,'l'):`<p class="empty">هنوز آهنگی ذخیره نکرده‌اید. روی ♡ در صفحهٔ آهنگ بزنید.</p>`)},
  about:()=>`<h2>درباره ما</h2>${cfg.about?`<p class="abt">${esc(cfg.about)}</p>`:`<p>موزیو (Muzio) فقط آهنگ‌هایی را نمایش می‌دهد که انتشار آن‌ها مجاز است.</p>`}`,
  nf:()=>`<div class="empty"><h2>۴۰۴</h2><p>صفحه پیدا نشد.</p><a class="btn" href="#/">بازگشت به خانه</a></div>`
