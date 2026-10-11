@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Muzio · موزیو | موسیقی مجاز و رایگان</title>
 <meta name="description" content="پخش و دانلود آهنگ‌های دارای مجوز انتشار">
-<link rel="canonical" href="https://example.com/">
+<link rel="canonical" href="./">
 <meta property="og:title" content="Muzio · موزیو"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="icon" href="images/favicon.png"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="images/icon-192.png"><meta name="theme-color" content="#07060f"><script>try{var t=localStorage.getItem('muzio_theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script><link rel="stylesheet" href="css/style.css">
@@ -16,6 +16,7 @@
   <button id="srchBtn" class="ibtn" aria-label="جستجو"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
   <div id="sbar" class="sbar" hidden><input id="q" type="search" placeholder="جستجوی آهنگ، خواننده، آلبوم…" aria-label="جستجو"></div>
 </header>
+<div id="notice" class="notice" hidden></div>
 <div id="scrim" class="scrim" hidden></div>
 <div id="drawer" class="drawer" role="navigation" aria-label="منو">
   <div class="dh"><b>Muzio · موزیو</b><button id="menuX" class="ibtn" aria-label="بستن">✕</button></div>
@@ -23,7 +24,7 @@
   <button id="themeBtn" class="tbtn">☀ حالت روشن</button>
 </div>
 <main id="view" tabindex="-1"></main>
-<footer><span id="fname">Muzio · موزیو</span> — <a href="#/about">درباره ما</a> <span id="flinks"></span> <button id="inst" class="chip" hidden>نصب اپ</button></footer>
+<footer><span id="fname">Muzio · موزیو</span> — <a href="#/about">درباره ما</a> · <a href="list/">فهرست آهنگ‌ها</a> <span id="flinks"></span> <button id="inst" class="chip" hidden>نصب اپ</button><div id="ftext"></div></footer>
 <div id="np" class="np" hidden><div id="npBg" class="npbg"></div><button id="npX" class="npx" aria-label="بستن">✕</button>
   <div class="npc"><img id="npImg" alt=""><b id="npT"></b><span id="npA"></span><canvas id="viz"></canvas><div class="npa"><button id="npH" class="btn ghost" aria-label="علاقه‌مندی">♡</button><button id="npS" class="btn ghost">اشتراک‌گذاری</button></div></div></div>
 <section id="player" class="player" hidden>

@@ -15,13 +15,13 @@ const row=(list,l)=>list.length?`<div class="grid">${list.map((s,i)=>card(s,i,l)
 const dl=s=>/\/api\/file\//.test(s.audio)?s.audio+'?dl=1&name='+encodeURIComponent(s.artist+' - '+s.title):s.audio;
 const NOTE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>';
 const fdate=d=>{const x=new Date(d);return isNaN(x)?'':x.toLocaleDateString('fa-IR',{year:'numeric',month:'long',day:'numeric'})};
-const post=(s,i)=>`<article class="post"><a class="phd" href="#/song/${s.id}"><span class="pnote">${NOTE}</span><div><h3>${esc(s.title)} | ${esc(s.artist)}</h3><small>${[esc(s.category),fdate(s.releaseDate),s.plays?s.plays.toLocaleString('fa')+' پخش':''].filter(Boolean).join(' / ')}</small></div></a>
+const post=(s,i)=>`<article class="post"><a class="phd" href="#/song/${s.id}"><span class="pnote">${NOTE}</span><div><h3>${esc(s.title)} | ${esc(s.artist)}</h3><small>${[esc(s.category),fdate(s.releaseDate),cfg.show_plays!==false&&s.plays?s.plays.toLocaleString('fa')+' پخش':''].filter(Boolean).join(' / ')}</small></div></a>
   <div class="pcard"><b>${esc(s.title)}</b><p>از ${esc(s.artist)}${s.album?' · آلبوم '+esc(s.album):''}</p>
   <a class="pplay" href="#/song/${s.id}" data-i="${i}" data-l="f"><img loading="lazy" src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""></a>
-  <a class="pbtn pplay" href="#/song/${s.id}" data-i="${i}" data-l="f">${s.downloadAllowed?'پخش و دانلود':'پخش'} «${esc(s.title)}»</a></div></article>`;
+  <a class="pbtn pplay" href="#/song/${s.id}" data-i="${i}" data-l="f">${cfg.allow_download!==false&&s.downloadAllowed?'پخش و دانلود':'پخش'} «${esc(s.title)}»</a></div></article>`;
 let fpg=0; // لیست همهٔ آهنگ‌ها: ۱۰ آهنگ در هر صفحه با دکمه‌های صفحه‌بندی
 function feed(){const box=document.getElementById('feed'),pg=document.getElementById('fend');if(!box)return;
-  const all=lists.f||[],per=10,np=Math.max(1,Math.ceil(all.length/per));
+  const all=lists.f||[],per=cfg.feed_per||10,np=Math.max(1,Math.ceil(all.length/per));
   const nums=()=>{const s=new Set([0,np-1,fpg-1,fpg,fpg+1]),o=[];let last=-1;
     [...s].filter(x=>x>=0&&x<np).sort((x,y)=>x-y).forEach(x=>{if(x-last>1)o.push('<span>…</span>');o.push(`<button data-pg="${x}" class="${x===fpg?'on':''}">${(x+1).toLocaleString('fa')}</button>`);last=x});return o.join('')};
   const draw=sc=>{fpg=Math.min(Math.max(fpg,0),np-1);box.innerHTML=all.slice(fpg*per,fpg*per+per).map((s,i)=>post(s,fpg*per+i)).join('');
@@ -57,8 +57,8 @@ const views={
   seo(`${s.title} - ${s.artist}`,`پخش آهنگ ${s.title} از ${s.artist}`,'#/song/'+s.id);
   const ld=document.getElementById('ld')||Object.assign(document.createElement('script'),{id:'ld',type:'application/ld+json'});
   ld.textContent=JSON.stringify({'@context':'https://schema.org','@type':'MusicRecording',name:s.title,byArtist:s.artist,inAlbum:s.album,datePublished:s.releaseDate,duration:s.duration});document.head.append(ld);
-  return `<div class="detail"><img src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""><div><h1>${esc(s.title)}</h1><p><a href="#/artist/${encodeURIComponent(s.artist)}">${esc(s.artist)}</a> · ${esc(s.album)} · ${esc(s.duration)}${s.plays?' · '+s.plays.toLocaleString('fa')+' پخش':''}</p>
-  ${s.license?`<p class="lic">منبع: <a href="${esc(s.sourceUrl||'#')}" target="_blank" rel="noopener">${esc(s.source||'')}</a> · مجوز: <a href="${esc(s.licenseUrl||'#')}" target="_blank" rel="noopener">${esc(s.license)}</a></p>`:''}<div class="acts"><button class="btn" data-play>پخش</button> <button class="btn ghost" data-fav>${isFav(s.id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی'}</button> <button class="btn ghost" data-share>اشتراک‌گذاری</button> <a class="btn ghost" href="#/artist/${encodeURIComponent(s.artist)}">همهٔ آهنگ‌های ${esc(s.artist)} (${songs.filter(x=>x.artist===s.artist).length.toLocaleString('fa')})</a> ${s.downloadAllowed&&s.audio?`<a class="btn" href="${esc(s.downloadUrl||dl(s))}" download>دانلود</a>`:''}</div></div></div>${s.lyrics?`<h2>متن آهنگ</h2><pre class="lyr">${esc(s.lyrics)}</pre>`:''}`},
+  return `<div class="detail"><img src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""><div><h1>${esc(s.title)}</h1><p><a href="#/artist/${encodeURIComponent(s.artist)}">${esc(s.artist)}</a> · ${esc(s.album)} · ${esc(s.duration)}${cfg.show_plays!==false&&s.plays?' · '+s.plays.toLocaleString('fa')+' پخش':''}</p>
+  ${s.license?`<p class="lic">منبع: <a href="${esc(s.sourceUrl||'#')}" target="_blank" rel="noopener">${esc(s.source||'')}</a> · مجوز: <a href="${esc(s.licenseUrl||'#')}" target="_blank" rel="noopener">${esc(s.license)}</a></p>`:''}<div class="acts"><button class="btn" data-play>پخش</button> <button class="btn ghost" data-fav>${isFav(s.id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی'}</button> <button class="btn ghost" data-share>اشتراک‌گذاری</button> <a class="btn ghost" href="#/artist/${encodeURIComponent(s.artist)}">همهٔ آهنگ‌های ${esc(s.artist)} (${songs.filter(x=>x.artist===s.artist).length.toLocaleString('fa')})</a> ${cfg.allow_download!==false&&s.downloadAllowed&&s.audio?`<a class="btn" href="${esc(s.downloadUrl||dl(s))}" download>دانلود</a>`:''}</div></div></div>${s.lyrics?`<h2>متن آهنگ</h2><pre class="lyr">${esc(s.lyrics)}</pre>`:''}`},
  fav(){const l=songs.filter(s=>favs().includes(s.id));lists.l=l;return `<h2>علاقه‌مندی‌های من</h2>`+(l.length?tiles(l,'l'):`<p class="empty">هنوز آهنگی ذخیره نکرده‌اید. روی ♡ در صفحهٔ آهنگ بزنید.</p>`)},
  about:()=>`<h2>درباره ما</h2>${cfg.about?`<p class="abt">${esc(cfg.about)}</p>`:`<p>موزیو (Muzio) فقط آهنگ‌هایی را نمایش می‌دهد که انتشار آن‌ها مجاز است.</p>`}`,
  nf:()=>`<div class="empty"><h2>۴۰۴</h2><p>صفحه پیدا نشد.</p><a class="btn" href="#/">بازگشت به خانه</a></div>`
@@ -83,9 +83,9 @@ function slider(){clearInterval(bt);const s=document.getElementById('bs');if(!s)
   reset()}
 // حالت روشن/تاریک (ذخیره در مرورگر؛ پیش‌فرض تاریک)
 const th=()=>document.documentElement.dataset.theme==='light'?'light':'dark';
-const setTheme=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem('muzio_theme',t)}catch{}
+const setTheme=(t,sv=true)=>{document.documentElement.dataset.theme=t;if(sv)try{localStorage.setItem('muzio_theme',t)}catch{}
   $('themeBtn').textContent=t==='light'?'🌙 حالت تاریک':'☀ حالت روشن';document.querySelector('meta[name=theme-color]').content=t==='light'?'#f5f2ff':'#07060f'};
-$('themeBtn').onclick=()=>setTheme(th()==='light'?'dark':'light');setTheme(th());
+$('themeBtn').onclick=()=>setTheme(th()==='light'?'dark':'light');setTheme(th(),false);
 // منوی همبرگری و جستجوی بازشونده
 const dr=$('drawer'),sc=$('scrim'),sb=$('sbar');
 const menu=o=>{dr.classList.toggle('open',o);sc.hidden=!o;$('menuBtn').setAttribute('aria-expanded',o)};
@@ -98,7 +98,12 @@ function applyCfg(){ // اعمال تنظیمات کلی پنل: رنگ‌ها،
   const en=cfg.name_en||'Muzio',fa=cfg.name_fa||'موزیو';document.querySelector('.logo span').textContent=en;document.querySelector('.logo small').textContent=fa;
   document.querySelector('.drawer .dh b').textContent=en+' · '+fa;$('fname').textContent=en+' · '+fa;
   const ln=[['تلگرام',cfg.contact_tg],['اینستاگرام',cfg.contact_ig],['ایمیل',cfg.contact_email&&'mailto:'+cfg.contact_email]].filter(x=>x[1]).map(x=>`<a href="${esc(x[1])}" target="_blank" rel="noopener">${x[0]}</a>`).join(' · ');
-  $('flinks').innerHTML=ln?' · '+ln:'';if(cfg.tagline)document.querySelector('meta[name=description]').content=cfg.tagline}
+  $('flinks').innerHTML=ln?' · '+ln:'';if(cfg.tagline)document.querySelector('meta[name=description]').content=cfg.tagline;
+  let sv=null;try{sv=localStorage.getItem('muzio_theme')}catch{}
+  if(!sv&&cfg.default_theme&&cfg.default_theme!=='dark')setTheme(cfg.default_theme==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):cfg.default_theme,false);
+  const nt=$('notice');if(cfg.announce_on&&cfg.announce&&sessionStorage.getItem('muzio_ntc')!==cfg.announce){nt.innerHTML=`<span>${esc(cfg.announce)}</span><button aria-label="بستن">✕</button>`;nt.hidden=false;nt.querySelector('button').onclick=()=>{nt.hidden=true;try{sessionStorage.setItem('muzio_ntc',cfg.announce)}catch{}}}
+  $('ftext').textContent=cfg.footer_text||'';
+  if(/^G-[A-Z0-9]{4,15}$/.test(cfg.ga_id||'')){const g=document.createElement('script');g.async=1;g.src='https://www.googletagmanager.com/gtag/js?id='+cfg.ga_id;document.head.append(g);window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config',cfg.ga_id)}}
 function route(){const [p,a]=location.hash.replace(/^#\/?/,'').split('/');const f=views[p||'home']||views.nf;
   if(!p)seo('خانه','پخش و دانلود آهنگ‌های دارای مجوز انتشار');v.innerHTML=f(a);scrollTo(0,0);slider();tslide();feed();dr.querySelectorAll('a').forEach(x=>x.classList.toggle('on',x.getAttribute('href')===(location.hash||'#/')))}
 v.addEventListener('click',e=>{if(e.target.closest('[data-share]'))return share(lists.l[0]);const fb=e.target.closest('[data-fav]');if(fb){fb.textContent=toggleFav(lists.l[0].id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی';return}if(e.target.closest('[data-play]'))return player.play(lists.l,0);

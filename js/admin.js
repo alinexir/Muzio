@@ -4,6 +4,39 @@ const H=()=>({authorization:'Bearer '+sessionStorage.getItem('t'),'content-type'
 const call=(p,o={})=>fetch(API+p,{...o,headers:H()}).then(r=>{if(r.status===401){sessionStorage.removeItem('t');login();throw 0}return r.json()});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const F=['title','artist','album','cover','audio','duration','releaseDate','category'];
+// ---- سئو: صفحه‌های ایستای آهنگ/خواننده + فهرست + sitemap (برای دیده شدن در گوگل) ----
+const hx=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const jld=o=>JSON.stringify(o).replace(/</g,'\\u003c');
+const akey=n=>{let h=2166136261;for(const c of n){h^=c.codePointAt(0);h=Math.imul(h,16777619)>>>0}return h.toString(36)};
+const isoDur=d=>{const m=/^(\d+):(\d+)$/.exec(d||'');return m?`PT${+m[1]}M${+m[2]}S`:undefined};
+function buildSeo(songs,info,cfg,base){
+  const en=cfg.name_en||'Muzio',fa=cfg.name_fa||'موزیو',site=en+' · '+fa,dlOn=cfg.allow_download!==false;
+  const abs=u=>u?(/^https?:\/\//.test(u)?u:new URL(u,base).href):'';
+  const cover=s=>abs(!s.cover||/cover1\.svg$/.test(s.cover)?'images/default-cover.jpg':s.cover);
+  const names=[...new Set(songs.map(s=>s.artist))],used=new Set(),key={};
+  names.forEach(n=>{let k=akey(n);while(used.has(k))k+='x';used.add(k);key[n]=k});
+  const aurl=n=>base+'artist/'+key[n]+'/',surl=s=>base+'song/'+s.id+'/';
+  const head=(title,desc,url,img,type,ld)=>`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${hx(title)}</title><meta name="description" content="${hx(desc.slice(0,155))}"><link rel="canonical" href="${hx(url)}"><meta property="og:title" content="${hx(title)}"><meta property="og:description" content="${hx(desc.slice(0,155))}"><meta property="og:type" content="${type}"><meta property="og:url" content="${hx(url)}"><meta property="og:image" content="${hx(img)}"><meta property="og:site_name" content="${hx(site)}"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#07060f"><link rel="icon" href="${hx(base)}images/favicon.png"><script>try{var t=localStorage.getItem('muzio_theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script><link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="${hx(base)}css/style.css"><script type="application/ld+json">${jld(ld)}</script></head>`;
+  const hdr=`<header class="top"><span></span><a class="logo" href="${hx(base)}"><span>${hx(en)}</span><small>${hx(fa)}</small></a><span></span></header>`;
+  const ftr=`<footer>${hx(site)} — <a href="${hx(base)}list/">فهرست آهنگ‌ها</a></footer>`;
+  const files=[],lm=d=>/^\d{4}-\d{2}-\d{2}/.test(d||'')?d.slice(0,10):'';
+  songs.forEach(s=>{const url=surl(s),dl=dlOn&&s.downloadAllowed&&s.audio,
+    desc=`پخش آنلاین آهنگ «${s.title}» از ${s.artist}${s.album?' از آلبوم '+s.album:''}${dl?' و دانلود آن':''} در ${fa}.`,
+    ld={'@context':'https://schema.org','@type':'MusicRecording',name:s.title,url,inLanguage:'fa',image:cover(s),byArtist:{'@type':'MusicGroup',name:s.artist,url:aurl(s.artist)},
+      ...(s.album?{inAlbum:{'@type':'MusicAlbum',name:s.album}}:{}),...(isoDur(s.duration)?{duration:isoDur(s.duration)}:{}),...(s.releaseDate?{datePublished:s.releaseDate}:{})},
+    lic=s.license&&/^https?:\/\//.test(s.licenseUrl||'')?`<p class="lic">مجوز: <a href="${hx(s.licenseUrl)}" rel="noopener">${hx(s.license)}</a>${/^https?:\/\//.test(s.sourceUrl||'')?` · منبع: <a href="${hx(s.sourceUrl)}" rel="noopener">${hx(s.source||'')}</a>`:''}</p>`:'';
+    files.push({path:'song/'+s.id+'/index.html',text:head(`${s.title} - ${s.artist} | ${site}`,desc,url,cover(s),'music.song',ld)+
+     `<body>${hdr}<main><div class="detail"><img src="${hx(cover(s))}" alt="${hx(s.title+' - '+s.artist)}"><div><h1>${hx(s.title)}</h1><p><a href="${hx(aurl(s.artist))}">${hx(s.artist)}</a>${s.album?' · '+hx(s.album):''}${s.duration?' · '+hx(s.duration):''}</p>${lic}${s.audio?`<audio controls preload="none" src="${hx(abs(s.audio))}" style="width:100%"></audio>`:''}<div class="acts"><a class="btn" href="${hx(base+'#/song/'+s.id)}">باز کردن در ${hx(fa)}</a><a class="btn ghost" href="${hx(aurl(s.artist))}">همهٔ آهنگ‌های ${hx(s.artist)}</a>${dl?`<a class="btn ghost" href="${hx(s.downloadUrl||abs(s.audio))}" download>دانلود</a>`:''}</div></div></div>${s.lyrics?`<h2>متن آهنگ ${hx(s.title)}</h2><pre class="lyr">${hx(s.lyrics)}</pre>`:''}</main>${ftr}</body></html>`})});
+  names.forEach(n=>{const list=songs.filter(s=>s.artist===n),url=aurl(n),ph=info[n]&&info[n].photo?abs(info[n].photo):cover(list[0]),
+    ld={'@context':'https://schema.org','@type':'MusicGroup',name:n,url,image:ph,track:list.slice(0,50).map(s=>({'@type':'MusicRecording',name:s.title,url:surl(s)}))};
+    files.push({path:'artist/'+key[n]+'/index.html',text:head(`آهنگ‌های ${n} | ${site}`,`پخش آنلاین ${list.length} آهنگ از ${n} در ${fa}: ${list.slice(0,4).map(s=>s.title).join('، ')}`,url,ph,'profile',ld)+
+     `<body>${hdr}<main><div class="ah"><img class="ph" src="${hx(ph)}" alt="${hx(n)}"><h1>آهنگ‌های ${hx(n)}</h1></div><h2>همهٔ آهنگ‌ها</h2><div class="grid">${list.map(s=>`<a class="card" href="${hx(surl(s))}"><img loading="lazy" src="${hx(cover(s))}" alt="${hx(s.title)}"><b>${hx(s.title)}</b><span>${hx(n)}</span></a>`).join('')}</div></main>${ftr}</body></html>`})});
+  files.push({path:'list/index.html',text:head(`فهرست آهنگ‌ها | ${site}`,`فهرست همهٔ آهنگ‌ها و خواننده‌های ${fa}`,base+'list/',abs('images/banner.jpg'),'website',{'@context':'https://schema.org','@type':'CollectionPage',name:'فهرست آهنگ‌ها',url:base+'list/'})+
+   `<body>${hdr}<main><h1>فهرست آهنگ‌ها</h1>${names.map(n=>`<h2><a href="${hx(aurl(n))}">${hx(n)}</a></h2><ul style="line-height:2.1;padding-inline-start:22px">${songs.filter(s=>s.artist===n).map(s=>`<li><a href="${hx(surl(s))}">${hx(s.title)}</a></li>`).join('')}</ul>`).join('')}</main>${ftr}</body></html>`});
+  const urls=[[base,''],[base+'list/',''],...songs.map(s=>[surl(s),lm(s.addedAt)||lm(s.releaseDate)]),...names.map(n=>[aurl(n),''])];
+  files.push({path:'sitemap.xml',text:`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(([u,d])=>`<url><loc>${hx(u)}</loc>${d?`<lastmod>${d}</lastmod>`:''}</url>`).join('\n')}\n</urlset>\n`});
+  files.push({path:'robots.txt',text:`User-agent: *\nAllow: /\nDisallow: ${new URL(base).pathname}admin/\nSitemap: ${base}sitemap.xml\n`});
+  return files}
 function login(){app.innerHTML=`<h2>ورود مدیر</h2><form id=f><input id=t type=password placeholder="توکن مدیر" required><button class=btn>ورود</button></form>`;
   f.onsubmit=e=>{e.preventDefault();sessionStorage.setItem('t',t.value);dash()}}
 async function dash(){const s=await call('/api/songs');
@@ -20,13 +53,18 @@ async function dash(){const s=await call('/api/songs');
   <b>رنگ‌های نئونی</b><div class=row><label>رنگ ۱<input type=color name=c1></label><label>رنگ ۲<input type=color name=c2></label><label>رنگ ۳<input type=color name=c3></label><button type=button id=crst class="btn ghost">پیش‌فرض</button></div>
   <label>ثانیهٔ تعویض اسلایدرها<input type=number name=slide_sec min=2 max=30></label><label>مدت نمایش برچسب «جدید» (ساعت بعد از آپلود)<input type=number name=new_hours min=1 max=168></label><label>تعداد صفحهٔ اسلایدر آهنگ‌های جدید (هر صفحه ۴ آهنگ)<input type=number name=pages min=1 max=6></label>
   <b>بخش‌های صفحهٔ اصلی</b><label class=chk><input type=checkbox name=show_banner> بنر</label><label class=chk><input type=checkbox name=show_new> آهنگ‌های جدید (اسلایدر)</label><label class=chk><input type=checkbox name=show_feed> همهٔ آهنگ‌ها (لیست)</label><label class=chk><input type=checkbox name=show_popular> محبوب‌ترین‌ها</label><label class=chk><input type=checkbox name=show_artists> خواننده‌ها</label><label class=chk><input type=checkbox name=show_cats> دسته‌بندی‌ها</label>
+  <b>تنظیمات بیشتر</b><label>تعداد آهنگ در هر صفحهٔ لیست «همهٔ آهنگ‌ها»<input type=number name=feed_per min=5 max=50></label><label>حالت پیش‌فرض برای بازدیدکنندهٔ جدید<select name=default_theme><option value=dark>تاریک</option><option value=light>روشن</option><option value=system>مطابق گوشی</option></select></label>
+  <label class=chk><input type=checkbox name=show_plays> نمایش تعداد پخش</label><label class=chk><input type=checkbox name=allow_download> اجازهٔ دانلود در کل سایت (خاموش = هیچ دکمهٔ دانلودی نمایش داده نشود)</label><label class=chk><input type=checkbox name=announce_on> نمایش اعلان بالای سایت</label><label>متن اعلان<input name=announce></label>
+  <label>متن پایین سایت (فوتر)<input name=footer_text></label><label>کد Google Analytics (مثلاً G-XXXXXXX، اختیاری)<input name=ga_id></label><label>آدرس اصلی سایت (برای سئو؛ خالی = خودکار)<input name=site_url placeholder="https://alinexir.github.io/Muzio/"></label>
   <b>بنرها</b><div id=bnl></div><div class=row><label class="btn ghost">آپلود بنر<input type=file id=bnf accept="image/*" hidden></label><button type=button id=bnp class="btn ghost">چسباندن لینک بنر</button></div>
   <label>متن صفحهٔ درباره ما<textarea name=about rows=5></textarea></label><label>لینک تلگرام<input name=contact_tg placeholder="https://t.me/..."></label><label>لینک اینستاگرام<input name=contact_ig placeholder="https://instagram.com/..."></label><label>ایمیل<input name=contact_email></label>
   <button class=btn>ذخیرهٔ تنظیمات</button><small id=sst></small></form>
   <h2>تنظیمات سایت (GitHub)</h2><div class=gset>
   <label>به‌روزرسانی سایت از فایل زیپ<input type=file id=gz accept=".zip"></label>
   <label>آپلود یک فایل به گیت‌هاب (مثلاً بنر جدید)<input type=file id=gf></label><input id=gp placeholder="مسیر در سایت، مثلاً images/banner3.jpg">
-  <button type=button id=gb class="btn ghost">پشتیبان‌گیری آهنگ‌ها و خواننده‌ها در گیت‌هاب</button><small id=gst></small></div>`;
+  <button type=button id=gb class="btn ghost">پشتیبان‌گیری آهنگ‌ها و خواننده‌ها در گیت‌هاب</button><small id=gst></small></div>
+  <h2>سئو (دیده شدن در گوگل)</h2><div class=gset><small>برای هر آهنگ و خواننده یک صفحهٔ جدا و نقشهٔ سایت (sitemap.xml) ساخته می‌شود. بعد از افزودن آهنگ‌های تازه دوباره بزنید.</small><button type=button id=sg class=btn>ساخت صفحه‌های سئو و ارسال به گیت‌هاب</button><small id=seos></small></div>
+  <h2>به‌روزرسانی ورکر از پنل</h2><div class=gset><div id=wst>در حال بررسی…</div><label>فایل worker.js یا music-site.zip<input type=file id=wf accept=".js,.zip"></label><div id=wr></div><small>اتصال: Secret به نام CF_API_TOKEN (دسترسی Workers Scripts Edit) و متغیرهای CF_ACCOUNT_ID و (اختیاری) CF_SCRIPT.</small></div>`;
   const draw=q=>tb.innerHTML=s.filter(x=>(x.title+x.artist+x.album).includes(q)).map(x=>`<tr><td>${esc(x.title)}</td><td>${esc(x.artist)}</td><td><button data-e=${x.id}>ویرایش</button> <button data-d=${x.id}>حذف</button> <button data-t=${x.id}>${x.downloadAllowed?'دانلود: روشن':'دانلود: خاموش'}</button></td></tr>`).join('');
   draw('');flt.oninput=()=>draw(flt.value);
   tb.onclick=async e=>{const d=e.target.dataset;if(d.t){const x=s.find(y=>y.id==d.t);await call('/api/songs',{method:'POST',body:JSON.stringify({id:x.id,title:x.title,artist:x.artist,downloadAllowed:!x.downloadAllowed})});return dash()}if(d.d&&confirm('حذف شود؟')){await call('/api/songs/'+d.d,{method:'DELETE'});dash()}
@@ -65,15 +103,15 @@ async function dash(){const s=await call('/api/songs');
   alist.onclick=e=>{const d=e.target.dataset,a=cur[d.ap!==undefined?d.ap:d.as];if(!a)return;
     if(d.ap!==undefined){an.value=a.name;af.scrollIntoView({behavior:'smooth'})}else{flt.value=a.name;draw(a.name);tb.scrollIntoView({behavior:'smooth'})}};
   // ----- تنظیمات کلی سایت -----
-  const DC={c1:'#00f0ff',c2:'#ff2bd6',c3:'#8a5cff'},TK=['name_en','name_fa','tagline','about','contact_tg','contact_ig','contact_email'],BK=['show_banner','show_new','show_feed','show_popular','show_artists','show_cats'],sfe=sf.elements;let bn=[...(cfg.banners||[])];
-  TK.forEach(k=>sfe[k].value=cfg[k]||'');['c1','c2','c3'].forEach(k=>sfe[k].value=cfg[k]||DC[k]);sfe.slide_sec.value=cfg.slide_sec||5;sfe.new_hours.value=cfg.new_hours||6;sfe.pages.value=cfg.pages||4;BK.forEach(k=>sfe[k].checked=cfg[k]!==false);
+  const DC={c1:'#00f0ff',c2:'#ff2bd6',c3:'#8a5cff'},TK=['name_en','name_fa','tagline','about','contact_tg','contact_ig','contact_email','announce','footer_text','ga_id','site_url','default_theme'],BK=['show_banner','show_new','show_feed','show_popular','show_artists','show_cats','show_plays','allow_download'],sfe=sf.elements;let bn=[...(cfg.banners||[])];
+  TK.forEach(k=>sfe[k].value=cfg[k]||'');['c1','c2','c3'].forEach(k=>sfe[k].value=cfg[k]||DC[k]);sfe.slide_sec.value=cfg.slide_sec||5;sfe.new_hours.value=cfg.new_hours||6;sfe.feed_per.value=cfg.feed_per||10;sfe.default_theme.value=cfg.default_theme||'dark';sfe.announce_on.checked=!!cfg.announce_on;sfe.pages.value=cfg.pages||4;BK.forEach(k=>sfe[k].checked=cfg[k]!==false);
   const drawB=()=>bnl.innerHTML=bn.map((u,i)=>`<div class=jrow><img src="${esc(u)}" alt=""><div><small>${esc(u.slice(-40))}</small></div><button type=button data-bu=${i}>⬆</button><button type=button data-bx=${i}>✕</button></div>`).join('')||'<small>بنر سفارشی نیست؛ بنرهای پیش‌فرض نمایش داده می‌شوند</small>';
   drawB();
   bnl.onclick=e=>{const d=e.target.dataset;if(d.bx!==undefined)bn.splice(+d.bx,1);else if(d.bu!==undefined&&+d.bu>0){const i=+d.bu;[bn[i-1],bn[i]]=[bn[i],bn[i-1]]}else return;drawB()};
   bnf.onchange=async()=>{const file=bnf.files[0];if(!file||big(file))return;sst.textContent='در حال آپلود بنر…';try{bn.push(await upload(file,'i'));drawB();sst.textContent='بنر اضافه شد؛ «ذخیرهٔ تنظیمات» را بزنید'}catch{sst.textContent='آپلود بنر ناموفق بود'}};
   bnp.onclick=async()=>{try{const t=(await navigator.clipboard.readText()).trim();if(!/^(https?:\/\/|images\/)/.test(t))return alert('لینک تصویر را کپی کنید');bn.push(t);drawB()}catch{alert('اجازهٔ کلیپ‌بورد داده نشد')}};
   crst.onclick=()=>['c1','c2','c3'].forEach(k=>sfe[k].value=DC[k]);
-  sf.onsubmit=async e=>{e.preventDefault();const o={banners:bn};TK.concat(['c1','c2','c3']).forEach(k=>o[k]=sfe[k].value.trim());o.slide_sec=+sfe.slide_sec.value||5;o.new_hours=+sfe.new_hours.value||6;o.pages=+sfe.pages.value||4;BK.forEach(k=>o[k]=sfe[k].checked);
+  sf.onsubmit=async e=>{e.preventDefault();const o={banners:bn};TK.concat(['c1','c2','c3']).forEach(k=>o[k]=sfe[k].value.trim());o.slide_sec=+sfe.slide_sec.value||5;o.new_hours=+sfe.new_hours.value||6;o.feed_per=+sfe.feed_per.value||10;o.announce_on=sfe.announce_on.checked;o.pages=+sfe.pages.value||4;BK.forEach(k=>o[k]=sfe[k].checked);
     sst.textContent='در حال ذخیره…';const r=await call('/api/settings',{method:'POST',body:JSON.stringify(o)});
     sst.textContent=r.error?'ناموفق: '+r.error+(r.error==='not found'?' (ورکر را با کد جدید Deploy کنید)':''):'ذخیره شد ✓ (چند ثانیه بعد در سایت اعمال می‌شود)'};
   // ----- به‌روزرسانی سایت با GitHub از داخل پنل -----
@@ -88,9 +126,25 @@ async function dash(){const s=await call('/api/songs');
       const st=lo+30+v.getUint16(lo+26,true)+v.getUint16(lo+28,true),raw=u.subarray(st,st+cs);out.push({path:name,data:mt===0?raw:await inflate(raw)})}
     return out};
   const toFile=(path,data)=>TEXT.test(path)?{path,text:new TextDecoder().decode(data)}:{path,b64:b64(data)};
-  const push=async(files,msg)=>{for(let i=0;i<files.length;i+=30){gst.textContent=`در حال ارسال به گیت‌هاب… ${Math.min(i+30,files.length)} از ${files.length}`;
-    const r=await call('/api/gh/commit',{method:'POST',body:JSON.stringify({message:msg,files:files.slice(i,i+30)})});if(r.error)throw r.error}};
+  const push=async(files,msg,z=30)=>{for(let i=0;i<files.length;i+=z){gst.textContent=`در حال ارسال به گیت‌هاب… ${Math.min(i+z,files.length)} از ${files.length}`;
+    const r=await call('/api/gh/commit',{method:'POST',body:JSON.stringify({message:msg,files:files.slice(i,i+z)})});if(r.error)throw r.error}};
   const ghErr=err=>gst.textContent='ناموفق: '+(err==='no_github'?'اول GITHUB_TOKEN و GH_REPO را در ورکر بگذارید':err);
+  // ----- سئو -----
+  sg.onclick=async()=>{const base=(cfg.site_url||new URL('../',location.href).href).replace(/\/?$/,'/'),files=buildSeo(s,info,cfg,base);
+    if(!confirm(`${files.length} فایل سئو برای آدرس ${base} ساخته و در گیت‌هاب ذخیره می‌شود. ادامه؟`))return;seos.textContent='در حال ساخت و ارسال…';
+    try{await push(files,'SEO pages from Muzio admin',300);seos.textContent=`انجام شد ✓ (${files.length} فایل). یکی دو دقیقه بعد فعال می‌شود. نقشهٔ سایت: ${base}sitemap.xml`}
+    catch(err){seos.textContent='ناموفق: '+(err==='no_github'?'اول GITHUB_TOKEN و GH_REPO را در ورکر بگذارید':err)}};
+  // ----- به‌روزرسانی ورکر -----
+  call('/api/cf/status').then(c=>{wst.innerHTML=c.error==='not_configured'?'اتصال Cloudflare هنوز تنظیم نشده':c.error?'خطا: '+esc(c.error):`ورکر <b>${esc(c.script)}</b> · نسخهٔ فعلی: <b>${esc(c.version)}</b>`}).catch(()=>{});
+  wf.onchange=async()=>{const file=wf.files[0];if(!file)return;wr.textContent='در حال خواندن…';
+    try{let code;if(/\.zip$/i.test(file.name)){const f=(await readZip(await file.arrayBuffer())).find(x=>/(^|\/)worker\/worker\.js$/.test(x.name));if(!f)throw 'worker/worker.js داخل زیپ نیست';code=new TextDecoder().decode(f.data)}else code=await file.text();
+      const ver=(/const VERSION='([^']+)'/.exec(code)||[])[1]||'نامشخص',mod=await import(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
+      if(!mod.default||typeof mod.default.fetch!=='function')throw 'کد ورکر معتبر نیست';
+      wr.innerHTML=`<p>کد معتبر است · نسخه: <b>${esc(ver)}</b> · ${(code.length/1024).toFixed(0)} کیلوبایت</p><button class=btn id=wd>Deploy ورکر</button>`;
+      wd.onclick=async()=>{if(!confirm('ورکر با این کد جایگزین می‌شود. ادامه؟'))return;wr.textContent='در حال ارسال به Cloudflare…';
+        const r=await fetch(API+'/api/cf/deploy',{method:'POST',headers:{authorization:'Bearer '+sessionStorage.getItem('t'),'content-type':'text/plain'},body:code}).then(x=>x.json());
+        wr.textContent=r.error?'ناموفق: '+r.error:'انجام شد ✓ ورکر به‌روز شد. اگر چیزی خراب شد، در Cloudflare به Deployments بروید و Rollback بزنید.'}}
+    catch(err){wr.textContent='ناموفق: '+err}};
   gz.onchange=async()=>{const file=gz.files[0];if(!file)return;
     try{gst.textContent='در حال خواندن زیپ…';let fs=await readZip(await file.arrayBuffer());
       const top=fs[0]&&fs[0].path.split('/')[0],root=fs.length&&fs[0].path.includes('/')&&fs.every(f=>f.path.split('/')[0]===top)?top+'/':'';
