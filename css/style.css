@@ -175,3 +175,12 @@ h2{scroll-margin-top:90px}
 .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
 
 .notice{display:flex;justify-content:center;align-items:center;gap:12px;padding:8px 14px;background:var(--grad);color:#07060f;font-weight:600;text-align:center}.notice[hidden]{display:none}.notice button{color:#07060f}
+
+/* ===== اسلایدر آهنگ‌های جدید: ۴ کاشی بالا + ۴ کاشی پایین، کوچک‌تر ===== */
+.tslider .tiles{grid-template-columns:repeat(4,1fr);gap:8px}
+.tslider .tile{border-radius:14px}
+.tslider .badge{top:5px;right:5px;padding:1px 7px;font-size:.55rem}
+.tslider .cap{padding:16px 3px 6px}
+.tslider .cap b{font-size:.68rem;line-height:1.4;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tslider .cap span{font-size:.58rem}
+@media(min-width:700px){.tslider .tiles{gap:14px}.tslider .tile{border-radius:20px}.tslider .badge{top:10px;right:10px;padding:2px 14px;font-size:.8rem}.tslider .cap{padding:30px 10px 10px}.tslider .cap b{font-size:1rem}.tslider .cap span{font-size:.85rem}}

@@ -9,7 +9,7 @@ const isNew=s=>s.addedAt&&Date.now()-new Date(s.addedAt)<(cfg.new_hours||6)*36e5
 const tile=(s,i,l)=>`<a class="tile" href="#/song/${s.id}" data-i="${i}" data-l="${l}"><img loading="lazy" src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt="">${isNew(s)?'<span class="badge">جدید</span>':''}<div class="cap"><b>${esc(s.title)}</b><span>${esc(s.artist)}</span></div></a>`;
 const tiles=(list,l)=>list.length?`<div class="tiles">${list.map((s,i)=>tile(s,i,l)).join('')}</div>`:`<p class="empty">موردی پیدا نشد.</p>`;
 const tslider=(list,l)=>{if(!list.length)return '<p class="empty">موردی پیدا نشد.</p>';const pg=[];
-  for(let i=0;i<list.length;i+=4)pg.push(list.slice(i,i+4).map((s,j)=>tile(s,i+j,l)).join('')); // هر صفحه ۴ آهنگ
+  for(let i=0;i<list.length;i+=8)pg.push(list.slice(i,i+8).map((s,j)=>tile(s,i+j,l)).join('')); // هر اسلاید ۸ کاشی
   return `<div class="tslider" id="ts"><div class="ttrack">${pg.map(p=>`<div class="tpage"><div class="tiles">${p}</div></div>`).join('')}</div>${pg.length>1?`<div class="tdots">${pg.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div>`:''}</div>`};
 const row=(list,l)=>list.length?`<div class="grid">${list.map((s,i)=>card(s,i,l)).join('')}</div>`:`<p class="empty">موردی پیدا نشد.</p>`;
 const dl=s=>/\/api\/file\//.test(s.audio)?s.audio+'?dl=1&name='+encodeURIComponent(s.artist+' - '+s.title):s.audio;
@@ -39,7 +39,7 @@ function seo(t,d,path){document.title=t+' | '+(cfg.name_en||'Muzio')+' · '+(cfg
   m('description',d);m('og:title',t,'property');m('og:description',d,'property');m('twitter:card','summary_large_image');
   document.querySelector('link[rel=canonical]').href=location.origin+location.pathname+(path||'')}
 const views={
- home(){const on=k=>cfg[k]!==false,n=byDate().slice(0,(cfg.pages||4)*4),p=popular().slice(0,8);lists.n=n;lists.p=p;lists.f=byDate();
+ home(){const on=k=>cfg[k]!==false,n=byDate().slice(0,(cfg.pages||2)*8),p=popular().slice(0,8);lists.n=n;lists.p=p;lists.f=byDate();
   const sec=(t,r)=>`<div class="sec"><h2>${t}</h2><a class="more" href="#/songs/${r}">مشاهده همه</a></div>`;
   const bn=cfg.banners&&cfg.banners.length?cfg.banners:['images/banner.jpg','images/banner2.jpg'];
   return (on('show_banner')?`<div class="bslider" id="bs">${bn.map((u,i)=>`<img${i?'':' class="on"'} src="${esc(u)}" alt="${esc(cfg.name_en||'Muzio')}">`).join('')}${bn.length>1?`<div class="dots">${bn.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div>`:''}</div>`:'')
