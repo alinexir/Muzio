@@ -52,7 +52,7 @@ async function dash(){const s=await call('/api/songs');
   <h2>پخش به تفکیک خواننده</h2>${byA.map(a=>`<div class=prow><span>${esc(a.name)} <small>${nf(a.n)} آهنگ</small></span><b>${nf(a.p)}</b><i style="width:${Math.round(a.p/Math.max(1,byA[0].p)*100)}%"></i></div>`).join('')}
   <h2>دسته‌بندی‌ها</h2>${Object.entries(cats).sort((a,b)=>b[1].n-a[1].n).map(([c,v])=>`<div class=prow><span>${esc(c)}</span><b>${nf(v.n)} آهنگ · ${nf(v.p)} پخش</b></div>`).join('')}
   <small>تعداد پخش تقریبی است و هر چند دقیقه یک‌بار به‌روز می‌شود.</small>`;
-  app.innerHTML=`<div class=tabs id=tabs><button data-t=dash>📊 داشبورد</button><button data-t=songs>🎵 آهنگ‌ها</button><button data-t=artists>🎤 خواننده‌ها</button><button data-t=settings>⚙ تنظیمات</button><button data-t=tools>🛠 ابزارها</button></div><section class=tab data-t=dash>${statsHtml}</section><section class=tab data-t=songs hidden><input id=flt placeholder="جستجوی آهنگ‌ها"><h2>لیست</h2><div id=tb class=slist></div>
+  app.innerHTML=`<div class=tabs id=tabs><button data-t=dash>📊 داشبورد</button><button data-t=songs>🎵 آهنگ‌ها</button><button data-t=artists>🎤 خواننده‌ها</button><button data-t=settings>⚙ تنظیمات</button><button data-t=tools>🛠 ابزارها</button></div><section class=tab data-t=dash>${statsHtml}</section><section class=tab data-t=songs hidden><h2 id=lh>لیست</h2><input id=flt placeholder="جستجوی آهنگ‌ها"><div id=tb class=slist></div>
   <h2 id=fh>افزودن آهنگ</h2><div id=einfo class=einfo hidden></div>
   <form id=f><label>آپلود فایل آهنگ (حداکثر ۲۴ مگابایت)<input type=file id=fa accept="audio/*"></label><label>آپلود کاور<input type=file id=fc accept="image/*"></label><div class=row><button type=button id=gc class="btn ghost">🔎 جستجوی کاور در گوگل</button><button type=button id=pc class="btn ghost">چسباندن لینک کاور</button></div><label>آپلود چند آهنگ با هم (اول نام خواننده را در فرم بنویسید)<input type=file id=fm accept="audio/*" multiple></label><small id=st></small>${F.map(k=>`<input name=${k} placeholder="${k}">`).join('')}<textarea name=lyrics rows=5 placeholder="متن آهنگ (فقط اگر حق انتشارش را دارید)" style="padding:8px;border-radius:8px;border:1px solid var(--s2);background:var(--s);color:var(--tx);font:inherit"></textarea><div class=row><button type=button id=gl class="btn ghost">🔎 جستجوی متن در گوگل</button><button type=button id=pl class="btn ghost">چسباندن متن</button></div><small>در گوگل پیدا کنید، کپی کنید و «چسباندن» را بزنید. فقط محتوایی که حق انتشارش را دارید.</small><input name=id type=hidden><label><input type=checkbox name=downloadAllowed style="width:auto"> اجازه دانلود</label><button class=btn>ذخیره</button></form>
   <h2>جستجوی موسیقی آزاد (Jamendo)</h2><form id=jf><input id=jq placeholder="نام آهنگ یا خواننده (انگلیسی بهتر است)"><button class=btn>جستجو</button></form><div id=jr></div><h2>Import Manager</h2><form id=im><input id=iu placeholder="URL مجاز API یا RSS"><button class=btn>Preview</button></form><div id=pv></div>
@@ -73,14 +73,19 @@ async function dash(){const s=await call('/api/songs');
   <h2>به‌روزرسانی ورکر از پنل</h2><div class=gset><div id=wst>در حال بررسی…</div><label>فایل worker.js یا music-site.zip<input type=file id=wf accept=".js,.zip"></label><div id=wr></div><small>اتصال: Secret به نام CF_API_TOKEN (دسترسی Workers Scripts Edit) و متغیرهای CF_ACCOUNT_ID و (اختیاری) CF_SCRIPT.</small></div>`;
   const showTab=k=>{document.querySelectorAll('.tab').forEach(x=>x.hidden=x.dataset.t!==k);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));try{sessionStorage.setItem('tab',k)}catch{}document.querySelector('#tabs button.on')?.scrollIntoView({inline:'center',block:'nearest'})};
   tabs.onclick=e=>{const b=e.target.closest('button');if(b){showTab(b.dataset.t);scrollTo(0,0)}};showTab((()=>{try{return sessionStorage.getItem('tab')}catch{}})()||'dash');
+  // ----- زدن روی عنوان هر بخش: پنهان / نمایش (حالت در همین نشست حفظ می‌شود) -----
+  document.querySelectorAll('.tab h2').forEach(h=>{const key='fold:'+h.textContent.trim();
+    const apply=on=>{h.classList.toggle('col',on);let n=h.nextElementSibling;while(n&&n.tagName!=='H2'){n.classList.toggle('fold',on);n=n.nextElementSibling}};
+    try{if(sessionStorage.getItem(key)==='1')apply(true)}catch{}
+    h.onclick=()=>{const on=!h.classList.contains('col');apply(on);try{on?sessionStorage.setItem(key,'1'):sessionStorage.removeItem(key)}catch{}}});
   const thumb=c=>!c||/cover1\.svg$/.test(c)?'../images/default-cover.jpg':/^https?:\/\//.test(c)?c:'../'+c;
   const draw=q=>tb.innerHTML=s.filter(x=>(x.title+x.artist+x.album).includes(q)).map(x=>`<div class=srow data-row=${x.id}><img src="${esc(thumb(x.cover))}" alt="" loading=lazy onerror="this.style.visibility='hidden'"><div class=sinfo><b>${esc(x.title)}</b><small>${esc(x.artist)}${x.category?' · '+esc(x.category):''}</small><small>▶ ${nf(x.plays)} پخش${x.downloadAllowed?' · ⬇ دانلود مجاز':''}</small></div><div class=sact><button class="btn sm" data-e=${x.id}>✏ ویرایش</button><button class="btn ghost sm" data-t=${x.id}>${x.downloadAllowed?'⬇ دانلود: روشن':'⬇ دانلود: خاموش'}</button><button class="btn ghost sm danger" data-d=${x.id}>🗑 حذف</button></div></div>`).join('')||'<small>آهنگی پیدا نشد</small>';
   draw('');flt.oninput=()=>draw(flt.value);
   // ----- ویرایش سریع: اطلاعات آهنگ، برگشت به همان ردیف لیست -----
   const keep=id=>{try{sessionStorage.setItem('lastEdit',String(id??''));sessionStorage.setItem('lastFlt',flt.value)}catch{}};
-  const goRow=id=>{const r=tb.querySelector(`[data-row="${id}"]`);if(r){r.scrollIntoView({behavior:'smooth',block:'center'});r.classList.add('flash');setTimeout(()=>r.classList.remove('flash'),1700)}};
+  const goRow=id=>{if(lh.classList.contains('col'))lh.click();const r=tb.querySelector(`[data-row="${id}"]`);if(r){r.scrollIntoView({behavior:'smooth',block:'center'});r.classList.add('flash');setTimeout(()=>r.classList.remove('flash'),1700)}};
   const resetForm=()=>{f.reset();f.elements.id.value='';einfo.hidden=true;fh.textContent='افزودن آهنگ'};
-  const openEdit=id=>{const x=s.find(y=>y.id==id);if(!x)return;
+  const openEdit=id=>{const x=s.find(y=>y.id==id);if(!x)return;if(fh.classList.contains('col'))fh.click();
     [...F,'id','lyrics'].forEach(k=>f.elements[k].value=x[k]??'');f.elements.downloadAllowed.checked=!!x.downloadAllowed;
     fh.textContent='ویرایش آهنگ';einfo.hidden=false;
     einfo.innerHTML=`<img src="${esc(thumb(x.cover))}" alt="" onerror="this.style.display='none'"><div><b>${esc(x.title)}</b><br>${esc(x.artist)}${x.album?' · '+esc(x.album):''}<br><small>${nf(x.plays)} پخش${x.addedAt?' · آپلود: '+new Date(x.addedAt).toLocaleDateString('fa'):''}${x.category?' · '+esc(x.category):''}${x.downloadAllowed?' · دانلود مجاز':' · دانلود بسته'}</small></div><div class=row><button type=button class="btn ghost" id=ebk>↑ برگشت به لیست</button><button type=button class="btn ghost" id=ecan>لغو ویرایش</button></div>`;
@@ -124,7 +129,7 @@ async function dash(){const s=await call('/api/songs');
   aflt.oninput=()=>drawA(aflt.value);drawA('');
   alist.onclick=e=>{const d=e.target.dataset,a=cur[d.ap!==undefined?d.ap:d.ac!==undefined?d.ac:d.as];if(!a)return;
     if(d.ac!==undefined){ca.value=a.name;catInfo();ca.scrollIntoView({behavior:'smooth',block:'center'});cc.focus()}
-    else if(d.ap!==undefined){an.value=a.name;af.scrollIntoView({behavior:'smooth'})}else{showTab('songs');flt.value=a.name;draw(a.name);tb.scrollIntoView({behavior:'smooth'})}};
+    else if(d.ap!==undefined){an.value=a.name;af.scrollIntoView({behavior:'smooth'})}else{showTab('songs');if(lh.classList.contains('col'))lh.click();flt.value=a.name;draw(a.name);tb.scrollIntoView({behavior:'smooth'})}};
   // ----- دسته‌بندی گروهی: همهٔ آهنگ‌های یک خواننده -----
   const catInfo=()=>{const l=s.filter(x=>x.artist===ca.value.trim());cinfo.textContent=l.length?`${l.length} آهنگ · دستهٔ فعلی: ${[...new Set(l.map(x=>x.category||'بدون دسته'))].join('، ')}`:''};
   ca.oninput=catInfo;
