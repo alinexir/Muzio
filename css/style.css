@@ -193,3 +193,5 @@ h2{scroll-margin-top:90px}
 .rk:nth-child(1) .n{color:#ffd54a;text-shadow:0 0 12px #ffb300}.rk:nth-child(2) .n{color:#b8c4cc}.rk:nth-child(3) .n{color:#ff9e6b}
 .rk img{width:52px;height:52px;border-radius:12px;object-fit:cover;flex:none}
 .rk>div{flex:1;min-width:0;display:grid}.rk b,.rk span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rk span{color:var(--mu);font-size:.85rem}.rk small{color:var(--mu);white-space:nowrap}
+
+.dlb{flex:1 1 100%;text-align:center}
