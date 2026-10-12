@@ -1,9 +1,9 @@
 // اپ اصلی: بارگذاری داده، مسیریابی hash، رندر صفحات، SEO
-import {Player,cv,DEF,share,isFav,toggleFav,favs} from './player.js';import {searchSongs,debounce} from './search.js';
+import {Player,cv,DEF,share,isFav,toggleFav,favs} from './player.js';import {searchSongs,debounce,norm} from './search.js';
 const API_BASE='https://muzio.kingdom80.workers.dev'; // بعد از ساخت Worker: 'https://your-worker.workers.dev'
 const $=id=>document.getElementById(id),v=$('view'),player=new Player(API_BASE);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let songs=[],info={},cfg={};const lists={};
+let songs=[],info={},cfg={},pls=[],sfo={cat:'',fo:'',sort:'rel'};const lists={};
 const card=(s,i,l)=>`<a class="card" href="#/song/${s.id}" data-i="${i}" data-l="${l}"><img loading="lazy" src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""><b>${esc(s.title)}</b><span>${esc(s.artist)}</span></a>`;
 const isNew=s=>s.addedAt&&Date.now()-new Date(s.addedAt)<(cfg.new_hours||6)*36e5; // «جدید» فقط چند ساعت بعد از آپلود
 const tile=(s,i,l)=>`<a class="tile" href="#/song/${s.id}" data-i="${i}" data-l="${l}"><img loading="lazy" src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt="">${isNew(s)?'<span class="badge">جدید</span>':''}<div class="cap"><b>${esc(s.title)}</b><span>${esc(s.artist)}</span></div></a>`;
@@ -12,6 +12,12 @@ const tslider=(list,l)=>{if(!list.length)return '<p class="empty">موردی پ�
   for(let i=0;i<list.length;i+=8)pg.push(list.slice(i,i+8).map((s,j)=>tile(s,i+j,l)).join('')); // هر اسلاید ۸ کاشی
   return `<div class="tslider" id="ts"><div class="ttrack">${pg.map(p=>`<div class="tpage"><div class="tiles">${p}</div></div>`).join('')}</div>${pg.length>1?`<div class="tdots">${pg.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div>`:''}</div>`};
 const rank=(list,l)=>list.length?`<div class="rks">${list.map((s,i)=>`<a class="rk pplay" href="#/song/${s.id}" data-i="${i}" data-l="${l}"><em class="n">${(i+1).toLocaleString('fa')}</em><img loading="lazy" src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""><div><b>${esc(s.title)}</b><span>${esc(s.artist)}</span></div>${cfg.show_plays!==false&&s.plays?`<small>▶ ${s.plays.toLocaleString('fa')}</small>`:''}</a>`).join('')}</div>`:`<p class="empty">موردی پیدا نشد.</p>`;
+const plSongs=p=>(p.ids||[]).map(id=>songs.find(s=>s.id==id)).filter(Boolean);
+const similar=s=>{const sc=x=>x.id===s.id?-1:(x.artist===s.artist?3:0)+(s.category&&x.category===s.category?2:0)+(!!x.foreign===!!s.foreign?1:0); // آهنگ‌های مشابه: هم‌خواننده یا هم‌دسته
+  const l=songs.map(x=>[sc(x),x]).filter(([n])=>n>=2).sort((x,y)=>y[0]-x[0]||(y[1].plays||0)-(x[1].plays||0)).slice(0,8).map(x=>x[1]);lists.s=l;
+  return l.length?`<h2>آهنگ‌های مشابه</h2>${row(l,'s')}`:''};
+const searchRes=q=>{let l=searchSongs(songs,q);if(sfo.cat)l=l.filter(s=>(s.category||'')===sfo.cat);if(sfo.fo)l=l.filter(s=>sfo.fo==='f'?!!s.foreign:!s.foreign);
+  if(sfo.sort==='new')l=[...l].sort(dcmp);else if(sfo.sort==='top')l=[...l].sort((x,y)=>(y.plays||0)-(x.plays||0));lists.l=l;return l};
 const row=(list,l)=>list.length?`<div class="grid">${list.map((s,i)=>card(s,i,l)).join('')}</div>`:`<p class="empty">موردی پیدا نشد.</p>`;
 const dlq=(u,s,l)=>/^https?:\/\//.test(u)||/^[\w./-]+$/.test(u)?(/\/api\/file\//.test(u)?u+'?dl=1&name='+encodeURIComponent(s.artist+' - '+s.title+' ['+l+']'):u):'#';
 const dl=s=>/\/api\/file\//.test(s.audio)?s.audio+'?dl=1&name='+encodeURIComponent(s.artist+' - '+s.title):s.audio;
@@ -32,7 +38,8 @@ function feed(){const box=document.getElementById('feed'),pg=document.getElement
   pg.onclick=e=>{const b=e.target.closest('[data-pg]');if(!b||b.disabled)return;const v=b.dataset.pg;fpg=v==='next'?fpg+1:v==='prev'?fpg-1:+v;draw(true)};
   draw(false)}
 const popular=()=>songs.filter(s=>s.plays||s.popular).sort((x,y)=>(y.plays||0)-(x.plays||0)||(y.popular?1:0)-(x.popular?1:0)); // محبوب = بیشترین پخش
-const byDate=()=>[...songs].sort((a,b)=>(!!b.addedAt-!!a.addedAt)||(b.addedAt||'').localeCompare(a.addedAt||'')||(b.releaseDate||'').localeCompare(a.releaseDate||'')); // تازه‌ترین آپلود اول
+const dcmp=(a,b)=>(!!b.addedAt-!!a.addedAt)||(b.addedAt||'').localeCompare(a.addedAt||'')||(b.releaseDate||'').localeCompare(a.releaseDate||''); // تازه‌ترین آپلود اول
+const byDate=()=>[...songs].sort(dcmp);
 const uniq=k=>[...new Set(songs.map(s=>s[k]))];
 const ph=(n,c='')=>info[n]&&info[n].photo?`<img class="ph" src="${esc(info[n].photo)}" alt="" loading="lazy">`:`<span class="ph">${esc([...n][0]||'?')}</span>`;
 const avatars=()=>`<div class="avs">${uniq('artist').map(a=>`<a class="av" href="#/artist/${encodeURIComponent(a)}">${ph(a)}<b>${esc(a)}</b></a>`).join('')}</div>`;
@@ -46,7 +53,7 @@ const views={
   const bn=cfg.banners&&cfg.banners.length?cfg.banners:['images/banner.jpg','images/banner2.jpg'];
   return (on('show_banner')?`<div class="bslider" id="bs">${bn.map((u,i)=>`<img${i?'':' class="on"'} src="${esc(u)}" alt="${esc(cfg.name_en||'Muzio')}">`).join('')}${bn.length>1?`<div class="dots">${bn.map((_,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div>`:''}</div>`:'')
   +(on('show_new')?sec('آهنگ‌های جدید','new')+tslider(n,'n'):'')
-  +(on('show_feed')?`<h2>همهٔ آهنگ‌ها</h2><div id="feed" class="feed"></div><div id="fend"></div>`:'')
+  +(on('show_playlists')?pls.filter(p=>p.home!==false).map(p=>{const l=plSongs(p);lists['pl'+p.id]=l;return l.length?`<div class="sec"><h2>${esc(p.title)}</h2><a class="more" href="#/pl/${p.id}">مشاهده همه</a></div>`+row(l.slice(0,8),'pl'+p.id):''}).join(''):'')+(on('show_feed')?`<h2>همهٔ آهنگ‌ها</h2><div id="feed" class="feed"></div><div id="fend"></div>`:'')
   +(on('show_popular')&&p.length?sec('پربازدیدترین‌ها','popular')+rank(p,'p'):'')+(on('show_foreign')&&fg.length?sec('آهنگ‌های خارجی','foreign')+row(fg,'g'):'')
   +(on('show_artists')?`<h2>خواننده‌ها</h2>${avatars()}`:'')+(on('show_cats')?`<h2>دسته‌بندی‌ها</h2>${chips('category','cat')}`:'')},
  songs(k){const l=k==='popular'?popular().slice(0,50):k==='foreign'?byDate().filter(s=>s.foreign):byDate();lists.l=l;
@@ -55,14 +62,16 @@ const views={
  artist(n){n=decodeURIComponent(n);lists.l=songs.filter(s=>s.artist===n);seo(n,`آهنگ‌های ${n}`);return `<div class="ah">${ph(n)}<h1>${esc(n)}</h1></div><h2>آهنگ‌ها</h2>${row(lists.l,'l')}`},
  cats:()=>`<h2>دسته‌بندی‌ها</h2>${chips('category','cat')}`,
  cat(c){c=decodeURIComponent(c);lists.l=songs.filter(s=>s.category===c);return `<h2>${esc(c)}</h2>${row(lists.l,'l')}`},
- search(q){q=decodeURIComponent(q);lists.l=searchSongs(songs,q);return `<h2>نتایج «${esc(q)}»</h2>${row(lists.l,'l')}`},
+ search(q){q=decodeURIComponent(q);const l=searchRes(q),cats=uniq('category').filter(Boolean),op=(v,t,c)=>`<option value="${v}"${c===v?' selected':''}>${t}</option>`;
+  return `<h2>نتایج «${esc(q)}»</h2><div class="sfl"><select id="sfCat"><option value="">همهٔ دسته‌ها</option>${cats.map(c=>op(esc(c),esc(c),sfo.cat)).join('')}</select><select id="sfFo">${op('','ایرانی و خارجی',sfo.fo)}${op('i','فقط ایرانی',sfo.fo)}${op('f','فقط خارجی',sfo.fo)}</select><select id="sfSort">${op('rel','مرتبط‌ترین',sfo.sort)}${op('new','جدیدترین',sfo.sort)}${op('top','پربازدیدترین',sfo.sort)}</select></div><div id="sres">${row(l,'l')}</div>`},
  song(id){const s=songs.find(x=>x.id==id);if(!s)return views.nf();lists.l=[s];
   seo(`${s.title} - ${s.artist}`,`پخش آهنگ ${s.title} از ${s.artist}`,'#/song/'+s.id);
   const ld=document.getElementById('ld')||Object.assign(document.createElement('script'),{id:'ld',type:'application/ld+json'});
   ld.textContent=JSON.stringify({'@context':'https://schema.org','@type':'MusicRecording',name:s.title,byArtist:s.artist,inAlbum:s.album,datePublished:s.releaseDate,duration:s.duration});document.head.append(ld);
   return `<div class="detail"><img src="${esc(cv(s))}" onerror="this.onerror=null;this.src='${DEF}'" alt=""><div><h1>${esc(s.title)}</h1><p><a href="#/artist/${encodeURIComponent(s.artist)}">${esc(s.artist)}</a> · ${esc(s.album)} · ${esc(s.duration)}${cfg.show_plays!==false&&s.plays?' · '+s.plays.toLocaleString('fa')+' پخش':''}</p>
-  ${s.license?`<p class="lic">منبع: <a href="${esc(s.sourceUrl||'#')}" target="_blank" rel="noopener">${esc(s.source||'')}</a> · مجوز: <a href="${esc(s.licenseUrl||'#')}" target="_blank" rel="noopener">${esc(s.license)}</a></p>`:''}<div class="acts"><button class="btn" data-play>پخش</button> <button class="btn ghost" data-fav>${isFav(s.id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی'}</button> <button class="btn ghost" data-share>اشتراک‌گذاری</button> <a class="btn ghost" href="#/artist/${encodeURIComponent(s.artist)}">همهٔ آهنگ‌های ${esc(s.artist)} (${songs.filter(x=>x.artist===s.artist).length.toLocaleString('fa')})</a> ${cfg.allow_download!==false&&s.downloadAllowed&&s.audio?`<a class="btn dlb" href="${esc(s.downloadUrl||dl(s))}" download>${s.qlabel?'دانلود آهنگ با کیفیت '+esc(s.qlabel):'دانلود آهنگ'}</a>`:''}${cfg.allow_download!==false&&s.downloadAllowed?(s.qualities||[]).map(q=>`<a class="btn dlb" href="${esc(dlq(q.url,s,q.label))}" download>دانلود آهنگ با کیفیت ${esc(q.label)}</a>`).join(''):''}</div></div></div>${s.lyrics?`<h2>متن آهنگ</h2><pre class="lyr">${esc(s.lyrics)}</pre>`:''}`},
+  ${s.license?`<p class="lic">منبع: <a href="${esc(s.sourceUrl||'#')}" target="_blank" rel="noopener">${esc(s.source||'')}</a> · مجوز: <a href="${esc(s.licenseUrl||'#')}" target="_blank" rel="noopener">${esc(s.license)}</a></p>`:''}<div class="acts"><button class="btn" data-play>پخش</button> <button class="btn ghost" data-fav>${isFav(s.id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی'}</button> <button class="btn ghost" data-share>اشتراک‌گذاری</button> <a class="btn ghost" href="#/artist/${encodeURIComponent(s.artist)}">همهٔ آهنگ‌های ${esc(s.artist)} (${songs.filter(x=>x.artist===s.artist).length.toLocaleString('fa')})</a> ${cfg.allow_download!==false&&s.downloadAllowed&&s.audio?`<a class="btn dlb" href="${esc(s.downloadUrl||dl(s))}" download>${s.qlabel?'دانلود آهنگ با کیفیت '+esc(s.qlabel):'دانلود آهنگ'}</a>`:''}${cfg.allow_download!==false&&s.downloadAllowed?(s.qualities||[]).map(q=>`<a class="btn dlb" href="${esc(dlq(q.url,s,q.label))}" download>دانلود آهنگ با کیفیت ${esc(q.label)}</a>`).join(''):''}</div></div></div>${s.lyrics?`<h2>متن آهنگ</h2><pre class="lyr">${esc(s.lyrics)}</pre>`:''}${similar(s)}`},
  fav(){const l=songs.filter(s=>favs().includes(s.id));lists.l=l;return `<h2>علاقه‌مندی‌های من</h2>`+(l.length?tiles(l,'l'):`<p class="empty">هنوز آهنگی ذخیره نکرده‌اید. روی ♡ در صفحهٔ آهنگ بزنید.</p>`)},
+ pl(id){const p=pls.find(x=>x.id===id);if(!p)return views.nf();const l=plSongs(p);lists.l=l;seo(p.title,'پلی‌لیست '+p.title);return `<h2>${esc(p.title)}</h2>${tiles(l,'l')}`},
  about:()=>`<h2>درباره ما</h2>${cfg.about?`<p class="abt">${esc(cfg.about)}</p>`:`<p>موزیو (Muzio) فقط آهنگ‌هایی را نمایش می‌دهد که انتشار آن‌ها مجاز است.</p>`}`,
  nf:()=>`<div class="empty"><h2>۴۰۴</h2><p>صفحه پیدا نشد.</p><a class="btn" href="#/">بازگشت به خانه</a></div>`
 };
@@ -112,9 +121,15 @@ function route(){const [p,a]=location.hash.replace(/^#\/?/,'').split('/');const 
 v.addEventListener('click',e=>{if(e.target.closest('[data-share]'))return share(lists.l[0]);const fb=e.target.closest('[data-fav]');if(fb){fb.textContent=toggleFav(lists.l[0].id)?'♥ ذخیره‌شده':'♡ علاقه‌مندی';return}if(e.target.closest('[data-play]'))return player.play(lists.l,0);
   const c=e.target.closest('.card,.tile,.pplay');if(c&&lists[c.dataset.l])player.play(lists[c.dataset.l],+c.dataset.i)});
 $('q').addEventListener('input',debounce(e=>{const q=e.target.value.trim();location.hash=q?'#/search/'+encodeURIComponent(q):'#/'}));
+v.addEventListener('change',e=>{if(!e.target.id||!e.target.id.startsWith('sf'))return;sfo.cat=$('sfCat').value;sfo.fo=$('sfFo').value;sfo.sort=$('sfSort').value;
+  $('sres').innerHTML=row(searchRes(decodeURIComponent(location.hash.split('/')[2]||'')),'l')});
+const sug=$('sug'); // پیشنهاد هنگام تایپ در جستجو
+const showSug=q=>{q=q.trim();if(!q){sug.hidden=true;return}const nq=norm(q),ar=[...new Set(songs.map(s=>s.artist))].filter(x=>norm(x).includes(nq)).slice(0,3),sg=searchSongs(songs,q).slice(0,5);
+  sug.innerHTML=ar.map(x=>`<a href="#/artist/${encodeURIComponent(x)}">🎤 ${esc(x)}</a>`).join('')+sg.map(s=>`<a href="#/song/${s.id}">🎵 ${esc(s.title)} <small>${esc(s.artist)}</small></a>`).join('');sug.hidden=!sug.innerHTML};
+$('q').addEventListener('input',e=>showSug(e.target.value));sug.addEventListener('click',()=>{sug.hidden=true;sb.hidden=true});
 addEventListener('hashchange',route);
 v.innerHTML=`<div class="grid">${'<div class="sk"></div>'.repeat(8)}</div>`;
-Promise.all([fetch(API_BASE?API_BASE+'/api/songs':'data/songs.json').then(r=>r.json()),API_BASE?fetch(API_BASE+'/api/artist-info').then(r=>r.json()).catch(()=>({})):{},API_BASE?fetch(API_BASE+'/api/settings').then(r=>r.json()).catch(()=>({})):{}]).then(([d,ai,cf])=>{songs=d.songs||d;info=ai||{};cfg=cf||{};applyCfg();route()})
+Promise.all([fetch(API_BASE?API_BASE+'/api/songs':'data/songs.json').then(r=>r.json()),API_BASE?fetch(API_BASE+'/api/artist-info').then(r=>r.json()).catch(()=>({})):{},API_BASE?fetch(API_BASE+'/api/settings').then(r=>r.json()).catch(()=>({})):{},API_BASE?fetch(API_BASE+'/api/playlists').then(r=>r.json()).catch(()=>[]):[]]).then(([d,ai,cf,pl])=>{songs=d.songs||d;info=ai||{};cfg=cf||{};pls=Array.isArray(pl)?pl:[];applyCfg();route()})
  .catch(()=>v.innerHTML=`<div class="empty"><p>بارگذاری آهنگ‌ها ناموفق بود.</p><button class="btn" onclick="location.reload()">تلاش دوباره</button></div>`);
 
 // نصب به‌صورت اپ (PWA) و Service Worker

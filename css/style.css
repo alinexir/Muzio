@@ -195,3 +195,8 @@ h2{scroll-margin-top:90px}
 .rk>div{flex:1;min-width:0;display:grid}.rk b,.rk span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rk span{color:var(--mu);font-size:.85rem}.rk small{color:var(--mu);white-space:nowrap}
 
 .dlb{flex:1 1 100%;text-align:center}
+
+/* ===== جستجوی پیشرفته و پیشنهاد حین تایپ ===== */
+.sug{display:grid;margin-top:8px;border-radius:14px;background:var(--s);border:1px solid rgba(138,92,255,.4);overflow:hidden}.sug[hidden]{display:none}
+.sug a{padding:10px 14px}.sug a:hover{background:rgba(138,92,255,.2)}.sug small{color:var(--mu)}
+.sfl{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}.sfl select{padding:8px 12px;border-radius:12px;border:1px solid rgba(138,92,255,.4);background:var(--s);color:var(--tx);font:inherit}
